@@ -1,0 +1,63 @@
+.content {
+  display: flex;
+  width: 100%;
+  max-width: 300px;
+  border-radius: 30px;
+  font-size: small;
+  gap: 20px;
+}
+
+button {
+  border: none;
+  padding: 0;
+  background-color: inherit;
+  max-height: 30px;
+  align-self: center;
+  color: var(--text-primary);
+}
+
+button:hover {
+  cursor: pointer;
+}
+
+i {
+  font-size: x-small;
+}
+p {
+  margin: 0;
+}
+
+mat-card {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0 15px;
+  width: 100%;
+  max-width: 135px;
+  height: 40px;
+  color: black;
+  font-weight: bold;
+  text-align: center;
+}
+
+.yearSelect {
+  min-width: 100px;
+}
+
+.monthSelect {
+  min-width: 135px;
+}
+
+.selectors{
+  display: flex;
+  gap: 5px;
+}
+
+.fa-arrow-rotate-left {
+  font-size: large;
+}
+
+.resetButtonContainer {
+  height: 100%;
+  justify-content: center;
+}

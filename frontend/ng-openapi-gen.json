@@ -1,0 +1,8 @@
+{
+  "$schema": "node_modules/ng-openapi-gen/ng-openapi-gen-schema.json",
+  "input": "src/app/api-spec.json",
+  "output": "src/app/api",
+  "module": "ApiModule",
+  "servicePrefix": "Api",
+  "indexFile": true
+}

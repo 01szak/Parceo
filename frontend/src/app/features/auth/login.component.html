@@ -1,0 +1,30 @@
+<mat-card>
+  <mat-card-content>
+    <h2>Login</h2>
+    <br>
+    <mat-hint style="color: red; font-size: small">{{ errorMessage }}</mat-hint>
+    <br>
+
+    <mat-form-field class="writtenText loginInput" appearance="outline">
+      <mat-label>Email</mat-label>
+      <input matInput type="text" id="loginEmail" name="loginEmail" [(ngModel)]="this.request.login"
+             (keydown.enter)="passwordField.focus()">
+    </mat-form-field>
+    <br>
+    <mat-form-field class="writtenText loginInput"  appearance="outline">
+      <mat-label>Password</mat-label>
+      <input matInput type="password" id="password" name="password" #passwordField
+             [(ngModel)]="this.request.password" (keydown.enter)="login()">
+
+    </mat-form-field>
+    <br>
+
+    <app-form-buttons
+      [firstButtonText]="'Zarejestruj się'"
+      [secondButtonText]="'Zaloguj się'"
+      [secondAction]="login"
+    />
+
+  </mat-card-content>
+</mat-card>
+<footer></footer>

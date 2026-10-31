@@ -1,0 +1,15 @@
+services:
+  database:
+    image: 'mysql:9.1'
+    ports:
+      - '3306:3306'
+    environment:
+      MYSQL_ROOT_PASSWORD: qwer
+      MYSQL_DATABASE: dev_camper_park_sf
+      MYSQL_USER: camper_user
+      MYSQL_PASSWORD: camper_pass
+    volumes:
+      - db_data:/var/lib/mysql
+
+volumes:
+  db_data:

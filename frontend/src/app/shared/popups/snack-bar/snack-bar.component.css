@@ -1,0 +1,3 @@
+:host {
+  display: contents; /* Eliminuje "jeden div za dużo" z układu */
+}

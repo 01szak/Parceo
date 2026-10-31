@@ -1,0 +1,56 @@
+
+services:
+  db:
+    image: mysql:9.1
+    container_name: camper_park-db-${SPRING_PROFILE}
+    restart: always
+    environment:
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - "${LOCAL_PATH}/db_data:/var/lib/mysql"
+      - "${DB_DUMP_SOURCE}:/docker-entrypoint-initdb.d/init.sql.gz"
+
+    networks:
+      - camper_park-net
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build: .
+    container_name: camper_park-app-${SPRING_PROFILE}
+    restart: always
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "${EXTERNAL_PORT}:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/${DB_NAME}
+      SPRING_DATASOURCE_USERNAME: ${DB_USER}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILE}
+
+      RSA_PRIVATE_KEY: file:/var/rsa/private.pem
+      RSA_PUBLIC_KEY: file:/var/rsa/public.pem
+
+      NOVU_SECRET_KEY: ${NOVU_SECRET_KEY}
+      NOVU_SERVER_URL: ${NOVU_SERVER_URL}
+    volumes:
+      - "/var/log/camper_park/${SPRING_PROFILE}:/var/log/camper_park"
+      - "${RSA_PRIVATE_PATH}:/var/rsa/private.pem:ro"
+      - "${RSA_PUBLIC_PATH}:/var/rsa/public.pem:ro"
+    networks:
+      - camper_park-net
+      - novu_default
+networks:
+  camper_park-net:
+    driver: bridge
+  novu_default:
+    external: true

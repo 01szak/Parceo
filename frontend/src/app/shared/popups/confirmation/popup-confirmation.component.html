@@ -1,0 +1,24 @@
+<h2 mat-dialog-title>{{ confirmationData.title || defaultTittle }}</h2>
+
+<mat-dialog-content>
+  @if (confirmationData.message) {
+    <p> {{confirmationData.message}}</p>
+  }
+
+  @if (confirmationData.component) {
+    <div class="dynamic-content">
+      <ng-container
+        *ngComponentOutlet="confirmationData.component;
+        inputs: confirmationData.componentData">
+      </ng-container>
+    </div>
+  }
+
+  <app-form-buttons
+    [firstButtonText]="'Nie'"
+    [secondButtonText]="'Tak'"
+    [firstAction]="firstAction"
+    [secondAction]="secondAction"
+  >
+  </app-form-buttons>
+</mat-dialog-content>
