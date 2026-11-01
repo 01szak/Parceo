@@ -5,9 +5,11 @@ import {CamperPlaceDto, CamperPlaceTypeDto, GuestDto, Pageable, ReservationDto, 
 import {Page} from '@core/models/Page';
 import {rxResource} from '@angular/core/rxjs-interop';
 import {tap} from 'rxjs';
-import {DEFAULT_PAGEABLE, DEFAULT_SEARCH_REQUEST} from '@shared/ui/data-table/regular-table.component';
 import {emptyPage, safePage} from './page-utils';
 import {DataVersionService} from './data-version.service';
+
+export const DEFAULT_PAGEABLE: Pageable = {page: 0, size: 10, sort: []};
+export const DEFAULT_SEARCH_REQUEST: SearchRequest = {searchCriteria: []};
 
 @Injectable({providedIn: "root"})
 export abstract class AbstractService {
