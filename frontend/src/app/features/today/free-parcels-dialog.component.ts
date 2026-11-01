@@ -39,7 +39,7 @@ export interface FreeParcelsDialogData {
             @for (parcel of data.parcels; track parcel.place.id) {
               <tr>
                 <td class="strong">Parcela {{ parcel.place.index }}</td>
-                <td>{{ parcel.place.camperPlaceType?.typeName }}</td>
+                <td>{{ parcel.place.camperPlaceType.typeName }}</td>
                 <td class="end">{{ price(parcel.place) }}</td>
                 <td>{{ freeLabel(parcel) }}</td>
                 <td class="end"><button mat-flat-button type="button" (click)="book(parcel.place)">Rezerwuj</button></td>

@@ -16,7 +16,7 @@
       <div class="row" role="row">
         <div class="place" role="rowheader">
           <span class="place-index">{{ row.place.index }}</span>
-          <span class="place-type">{{ row.place.camperPlaceType?.typeName }}</span>
+          <span class="place-type">{{ row.place.camperPlaceType.typeName }}</span>
         </div>
 
         @for (day of days(); track day.date; let i = $index) {
