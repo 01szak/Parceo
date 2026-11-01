@@ -1,6 +1,6 @@
 import {Routes} from '@angular/router';
 import {LoginComponent} from '@features/auth/login.component';
-import {StatisticsPage} from '@features/statistics/statistics-page/statistics-page';
+import {ReportsPageComponent} from '@features/reports/reports-page.component';
 import {CalendarPageComponent} from '@features/calendar/calendar-page.component';
 import {SettingsPage} from '@features/settings/settings-page/settings-page.component';
 import {SettingsPlacesComponent} from '@features/settings/places/settings-places.component';
@@ -20,7 +20,7 @@ export const routes: Routes = [
     children: [
       {path: HOME_PATH, component: TodayPageComponent, title: title('Dziś')},
       {path: 'kalendarz', component: CalendarPageComponent, title: title('Kalendarz')},
-      {path: 'raporty', component: StatisticsPage, title: title('Raporty')},
+      {path: 'raporty', component: ReportsPageComponent, title: title('Raporty')},
       {
         path: 'ustawienia', component: SettingsPage, children: [
           {path: 'parcele', component: SettingsPlacesComponent, title: title('Parcele i ceny')},

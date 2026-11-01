@@ -74,6 +74,13 @@ html {
   --res-on-late-container: light-dark(#410002, #FFDAD6);
   --res-late: light-dark(#BA1A1A, #FFB4AB);
 
+  // categorical chart colors (validated for color blindness in both schemes); the last one is "other"
+  --chart-1: light-dark(#2a78d6, #3987e5);
+  --chart-2: light-dark(#eb6834, #d95926);
+  --chart-3: light-dark(#1baf7a, #199e70);
+  --chart-4: light-dark(#eda100, #c98500);
+  --chart-other: light-dark(#70787C, #8A9296);
+
   --calendar-gridline: var(--mat-sys-outline-variant);
   --calendar-weekend: var(--mat-sys-surface-container-high);
 
