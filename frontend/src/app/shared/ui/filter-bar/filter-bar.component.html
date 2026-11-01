@@ -1,0 +1,84 @@
+<mat-form-field class="view" subscriptSizing="dynamic">
+  <mat-label>Pokaż</mat-label>
+  <mat-select [value]="activeViewId()" (valueChange)="viewChange.emit($event)">
+    <mat-optgroup label="Gotowe widoki">
+      @for (view of views(); track view.id) {
+        <mat-option [value]="view.id">{{ view.label }}</mat-option>
+      }
+    </mat-optgroup>
+    @if (savedViews().length) {
+      <mat-optgroup label="Moje filtry">
+        @for (view of savedViews(); track view.id) {
+          <mat-option [value]="view.id">
+            <mat-icon aria-hidden="true">bookmark</mat-icon>{{ view.label }}
+          </mat-option>
+        }
+      </mat-optgroup>
+    }
+  </mat-select>
+</mat-form-field>
+
+@if (activeSavedView(); as saved) {
+  <button mat-icon-button type="button" class="delete-saved" (click)="deleteSavedView.emit(saved.id)"
+          [attr.aria-label]="'Usuń zapisany filtr ' + saved.label" [matTooltip]="'Usuń filtr „' + saved.label + '”'">
+    <mat-icon>delete</mat-icon>
+  </button>
+}
+
+<button mat-stroked-button type="button" cdkOverlayOrigin #origin="cdkOverlayOrigin"
+        (click)="openPopover()" aria-haspopup="dialog" [attr.aria-expanded]="popoverOpen()">
+  <mat-icon>filter_list</mat-icon>
+  Dodaj filtr
+</button>
+
+@if (hasApplied()) {
+  <mat-chip-set class="applied" aria-label="Włączone filtry">
+    @for (chip of appliedChips(); track chip.key) {
+      <mat-chip (removed)="removeFilter(chip.key)">
+        {{ chip.label }}
+        <button matChipRemove [attr.aria-label]="'Usuń filtr ' + chip.label">
+          <mat-icon>close</mat-icon>
+        </button>
+      </mat-chip>
+    }
+  </mat-chip-set>
+  <button mat-button type="button" (click)="askForName()">
+    <mat-icon>bookmark_add</mat-icon>
+    Zapisz filtr
+  </button>
+  <button mat-button type="button" (click)="clearAll()">Wyczyść filtry</button>
+}
+
+<ng-template cdkConnectedOverlay [cdkConnectedOverlayOrigin]="origin" [cdkConnectedOverlayOpen]="popoverOpen()"
+             [cdkConnectedOverlayPositions]="popoverPositions" [cdkConnectedOverlayHasBackdrop]="true"
+             cdkConnectedOverlayBackdropClass="cdk-overlay-transparent-backdrop"
+             (backdropClick)="closePopover()" (detach)="closePopover()" (overlayKeydown)="$event.key === 'Escape' && closePopover()">
+  <div class="popover" role="dialog" aria-labelledby="filters-title">
+    <div class="popover-header">
+      <h3 id="filters-title">Filtry</h3>
+      <button mat-icon-button type="button" (click)="closePopover()" aria-label="Zamknij">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+
+    @for (group of groups(); track group.key) {
+      <div class="group">
+        <p class="group-label" [id]="'group-' + group.key">{{ group.label }}</p>
+        <mat-chip-listbox [attr.aria-labelledby]="'group-' + group.key"
+                          [value]="draft()[group.key] ?? 'any'" (change)="pick(group.key, $event.value)">
+          @for (option of group.options; track option.value) {
+            <mat-chip-option [value]="option.value">{{ option.label }}</mat-chip-option>
+          }
+        </mat-chip-listbox>
+      </div>
+    }
+
+    <div class="popover-actions">
+      <button mat-button type="button" (click)="clearDraft()">Wyczyść</button>
+      @if (hasDraft()) {
+        <button mat-button type="button" (click)="applyAndSave()">Zapisz jako filtr</button>
+      }
+      <button mat-flat-button type="button" (click)="apply()">{{ applyLabel() }}</button>
+    </div>
+  </div>
+</ng-template>

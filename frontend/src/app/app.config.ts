@@ -2,6 +2,8 @@ import {ApplicationConfig, inject, provideAppInitializer, provideZoneChangeDetec
 import {MAT_FORM_FIELD_DEFAULT_OPTIONS, MatFormFieldDefaultOptions} from '@angular/material/form-field';
 import {MatIconRegistry} from '@angular/material/icon';
 import {ThemeService} from '@core/services/ThemeService';
+import {MatPaginatorIntl} from '@angular/material/paginator';
+import {PolishPaginatorIntl} from '@core/i18n/polish-paginator-intl';
 import {provideRouter} from '@angular/router';
 
 import {routes} from './app.routes';
@@ -44,6 +46,7 @@ export const appConfig: ApplicationConfig = {
     { provide: MAT_DATE_LOCALE, useValue: 'pl-PL' },
     provideApiConfiguration('/api'),
     {provide: MAT_FORM_FIELD_DEFAULT_OPTIONS, useValue: FORM_FIELD_DEFAULTS},
+    {provide: MatPaginatorIntl, useClass: PolishPaginatorIntl},
     provideAppInitializer(() => {
       inject(MatIconRegistry).setDefaultFontSetClass('material-symbols-rounded');
       inject(ThemeService); //applies the stored theme before the first render

@@ -6,20 +6,14 @@ import {Page} from '@core/models/Page';
 import {rxResource} from '@angular/core/rxjs-interop';
 import {tap} from 'rxjs';
 import {DEFAULT_PAGEABLE, DEFAULT_SEARCH_REQUEST} from '@shared/ui/data-table/regular-table.component';
-
-export function emptyPage<T>(): Page<T> {
-  return {content: [], number: 0, size: 0, totalElements: 0, totalPages: 0};
-}
-
-//reading value() of a resource in the error state throws and breaks the whole view
-export function safePage<T>(resource: ResourceRef<Page<T>>): Page<T> {
-  return resource.hasValue() ? resource.value() : emptyPage<T>();
-}
+import {emptyPage, safePage} from './page-utils';
+import {DataVersionService} from './data-version.service';
 
 @Injectable({providedIn: "root"})
 export abstract class AbstractService {
   protected readonly serviceFacade = inject(ServiceFacade);
   protected readonly notification = inject(NotificationService);
+  private readonly versions = inject(DataVersionService);
   //null is used to get unpaged data
   public readonly pageable = signal<Pageable | undefined | null>(undefined);
   public readonly searchRequest = signal<SearchRequest | undefined>(undefined);
@@ -63,6 +57,7 @@ export abstract class AbstractService {
     return tap<ApiResponse>({
       next: (response) => {
         this.reloadResources();
+        this.versions.bump(this.getType());
         this.notification.success(response);
       },
       error: (error) => this.notification.error(error)

@@ -1,6 +1,7 @@
 import {computed, Injectable, ResourceRef, signal} from '@angular/core';
 import {rxResource} from '@angular/core/rxjs-interop';
-import {AbstractService, safePage} from '@core/services/openApiWrappers/AbstractService';
+import {AbstractService} from '@core/services/openApiWrappers/AbstractService';
+import {safePage} from './page-utils';
 import {ResourceType} from '@core/services/openApiWrappers/service-facade.service';
 import {Page} from '@core/models/Page';
 import {ReservationDto} from '../../../api';

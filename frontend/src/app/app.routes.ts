@@ -3,10 +3,10 @@ import {LoginComponent} from '@features/auth/login.component';
 import {RegisterComponent} from '@features/auth/register.component';
 import {StatisticsPage} from '@features/statistics/statistics-page/statistics-page';
 import {GuestPage} from '@features/guests/guest-page/guest-page.component';
-import {ReservationPage} from '@features/reservations/table/reservation-page';
 import {CalendarPage} from '@features/reservations/calendar/calendar-page';
 import {SettingsPage} from '@features/settings/settings-page/settings-page.component';
 import {AppShellComponent} from '@core/layout/app-shell.component';
+import {TodayPageComponent} from '@features/today/today-page.component';
 import {authGuard, guestGuard, HOME_PATH, LOGIN_PATH} from '@core/guards/auth.guard';
 
 const title = (page: string) => `${page} | Parceo`;
@@ -19,8 +19,7 @@ export const routes: Routes = [
     component: AppShellComponent,
     canActivate: [authGuard],
     children: [
-      //the reservation table stands in for the "Dziś" page until step 7 of PLAN.md
-      {path: HOME_PATH, component: ReservationPage, title: title('Dziś')},
+      {path: HOME_PATH, component: TodayPageComponent, title: title('Dziś')},
       {path: 'kalendarz', component: CalendarPage, title: title('Kalendarz')},
       {path: 'goscie', component: GuestPage, title: title('Goście')},
       {path: 'raporty', component: StatisticsPage, title: title('Raporty')},

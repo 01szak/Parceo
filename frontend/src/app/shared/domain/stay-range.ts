@@ -65,3 +65,8 @@ export function stayLabel(nights: readonly string[]): string {
   const departure = format(new Date(parse(nights[nights.length - 1]).getTime() + DAY_MS));
   return `${dayMonth(nights[0])} – ${dayMonth(departure)}`;
 }
+
+//the date `days` days later (negative: earlier), counted in UTC so DST changes do not shift it
+export function addDays(iso: string, days: number): string {
+  return format(new Date(parse(iso).getTime() + days * DAY_MS));
+}
