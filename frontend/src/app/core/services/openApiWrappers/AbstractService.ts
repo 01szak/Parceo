@@ -13,7 +13,7 @@ import {DataVersionService} from './data-version.service';
 export abstract class AbstractService {
   protected readonly serviceFacade = inject(ServiceFacade);
   protected readonly notification = inject(NotificationService);
-  private readonly versions = inject(DataVersionService);
+  protected readonly versions = inject(DataVersionService);
   //null is used to get unpaged data
   public readonly pageable = signal<Pageable | undefined | null>(undefined);
   public readonly searchRequest = signal<SearchRequest | undefined>(undefined);

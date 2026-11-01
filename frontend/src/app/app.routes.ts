@@ -5,6 +5,8 @@ import {StatisticsPage} from '@features/statistics/statistics-page/statistics-pa
 import {GuestPage} from '@features/guests/guest-page/guest-page.component';
 import {CalendarPage} from '@features/reservations/calendar/calendar-page';
 import {SettingsPage} from '@features/settings/settings-page/settings-page.component';
+import {SettingsPlacesComponent} from '@features/settings/places/settings-places.component';
+import {SettingsAppearanceComponent} from '@features/settings/appearance/settings-appearance.component';
 import {AppShellComponent} from '@core/layout/app-shell.component';
 import {TodayPageComponent} from '@features/today/today-page.component';
 import {authGuard, guestGuard, HOME_PATH, LOGIN_PATH} from '@core/guards/auth.guard';
@@ -23,7 +25,13 @@ export const routes: Routes = [
       {path: 'kalendarz', component: CalendarPage, title: title('Kalendarz')},
       {path: 'goscie', component: GuestPage, title: title('Goście')},
       {path: 'raporty', component: StatisticsPage, title: title('Raporty')},
-      {path: 'ustawienia', component: SettingsPage, title: title('Ustawienia')},
+      {
+        path: 'ustawienia', component: SettingsPage, children: [
+          {path: 'parcele', component: SettingsPlacesComponent, title: title('Parcele i ceny')},
+          {path: 'wyglad', component: SettingsAppearanceComponent, title: title('Wygląd')},
+          {path: '', pathMatch: 'full', redirectTo: 'parcele'},
+        ]
+      },
       {path: '', pathMatch: 'full', redirectTo: HOME_PATH},
     ]
   },

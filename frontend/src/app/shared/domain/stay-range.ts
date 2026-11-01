@@ -1,3 +1,5 @@
+import {countLabel} from './plural';
+
 //dates are ISO strings (YYYY-MM-DD), the backend's format; a stay occupies the nights [checkin, checkout)
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -19,11 +21,7 @@ export function nightsBetween(checkin: string, checkout: string): number {
 
 //"1 noc", "3 noce", "5 nocy", "22 noce"
 export function nightsLabel(nights: number): string {
-  const lastDigit = nights % 10;
-  const lastTwo = nights % 100;
-  if (nights === 1) return '1 noc';
-  if (lastDigit >= 2 && lastDigit <= 4 && (lastTwo < 12 || lastTwo > 14)) return `${nights} noce`;
-  return `${nights} nocy`;
+  return countLabel(nights, 'noc', 'noce', 'nocy');
 }
 
 //"3 noce, od soboty do wtorku"

@@ -2,6 +2,7 @@ import {ApplicationConfig, inject, provideAppInitializer, provideZoneChangeDetec
 import {MAT_FORM_FIELD_DEFAULT_OPTIONS, MatFormFieldDefaultOptions} from '@angular/material/form-field';
 import {MatIconRegistry} from '@angular/material/icon';
 import {ThemeService} from '@core/services/ThemeService';
+import {TextSizeService} from '@core/services/TextSizeService';
 import {MatPaginatorIntl} from '@angular/material/paginator';
 import {PolishPaginatorIntl} from '@core/i18n/polish-paginator-intl';
 import {provideRouter} from '@angular/router';
@@ -49,7 +50,9 @@ export const appConfig: ApplicationConfig = {
     {provide: MatPaginatorIntl, useClass: PolishPaginatorIntl},
     provideAppInitializer(() => {
       inject(MatIconRegistry).setDefaultFontSetClass('material-symbols-rounded');
-      inject(ThemeService); //applies the stored theme before the first render
+      //apply the stored theme and text size before the first render
+      inject(ThemeService);
+      inject(TextSizeService);
     }),
   ]
 };

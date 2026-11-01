@@ -25,9 +25,13 @@ export class CamperPlaceService extends AbstractService {
   }
 
   //independent from the shared pageable / searchRequest signals, so it is not affected by other pages / popups resetting them
+  //also reloads after a type change, which can override the prices of its places
   public readonly unpagedCamperPlaceResource: ResourceRef<Page<any>> = rxResource({
     defaultValue: {content: [], number: 0, size: 0, totalElements: 0, totalPages: 0} as Page<any>,
-    params: () => ({}),
+    params: () => ({
+      places: this.versions.version(ResourceType.CAMPER_PLACE)(),
+      types: this.versions.version(ResourceType.CAMPER_PLACE_TYPE)(),
+    }),
     stream: () => this.serviceFacade.findBy(this.getType(), ALL_SORTED_BY_INDEX, {searchCriteria: []})
   });
 
