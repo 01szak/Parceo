@@ -1,4 +1,4 @@
-import {inject, Injectable, ResourceRef, signal} from '@angular/core';
+import {computed, inject, Injectable, ResourceRef, signal} from '@angular/core';
 import {ApiResponse, ResourceType, ServiceFacade} from '@core/services/openApiWrappers/service-facade.service';
 import {NotificationService} from '@core/services/NotificationService';
 import {CamperPlaceDto, CamperPlaceTypeDto, GuestDto, Pageable, ReservationDto, SearchRequest} from '../../../api';
@@ -6,6 +6,15 @@ import {Page} from '@core/models/Page';
 import {rxResource} from '@angular/core/rxjs-interop';
 import {tap} from 'rxjs';
 import {DEFAULT_PAGEABLE, DEFAULT_SEARCH_REQUEST} from '@shared/ui/data-table/regular-table.component';
+
+export function emptyPage<T>(): Page<T> {
+  return {content: [], number: 0, size: 0, totalElements: 0, totalPages: 0};
+}
+
+//reading value() of a resource in the error state throws and breaks the whole view
+export function safePage<T>(resource: ResourceRef<Page<T>>): Page<T> {
+  return resource.hasValue() ? resource.value() : emptyPage<T>();
+}
 
 @Injectable({providedIn: "root"})
 export abstract class AbstractService {
@@ -18,12 +27,15 @@ export abstract class AbstractService {
   public abstract getType(): ResourceType;
 
   public pageResource: ResourceRef<Page<any>> = rxResource({
-    defaultValue: {content: [], number: 0, size: 0, totalElements: 0, totalPages: 0} as Page<any>,
+    defaultValue: emptyPage(),
     params: () => {return {pageable: this.pageable(), searchCriteria: this.searchRequest()}},
     stream: ({params}) => {
       return this.serviceFacade.findBy(this.getType(), params.pageable, params.searchCriteria)
     }
   })
+
+  //the current page, or an empty one while the request failed (value() throws in the error state)
+  public readonly page = computed(() => safePage(this.pageResource));
 
   public create(body: GuestDto | ReservationDto | CamperPlaceDto | CamperPlaceTypeDto) {
     return this.serviceFacade.create(this.getType(), body).pipe(this.notifyAndReload());

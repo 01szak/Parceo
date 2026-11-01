@@ -10,6 +10,7 @@ import {HTTP_INTERCEPTORS, provideHttpClient, withInterceptorsFromDi} from '@ang
 import {AuthInterceptor} from '@core/interceptors/auth.interceptor';
 import {BlobJsonInterceptor} from '@core/interceptors/blob-to-json.interceptor';
 import moment from 'moment';
+import 'moment/locale/pl'; //month and day names, the week starting on Monday
 import {provideMomentDateAdapter} from '@angular/material-moment-adapter';
 import {MAT_DATE_LOCALE} from '@angular/material/core';
 import {provideApiConfiguration} from './api/api-configuration';
@@ -18,10 +19,10 @@ moment.locale('pl');
 
 export const DATE_FORMATS = {
   parse: {
-    dateInput: 'DD.MM.YY',
+    dateInput: ['DD.MM.YYYY', 'DD.MM.YY'],
   },
   display: {
-    dateInput: 'DD.MM.YY',
+    dateInput: 'DD.MM.YYYY',
     monthYearLabel: 'MMM YYYY',
     dateA11yLabel: 'LL',
     monthYearA11yLabel: 'MMMM YYYY',

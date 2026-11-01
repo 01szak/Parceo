@@ -228,6 +228,26 @@ html {
   ));
 }
 
+// side sheet (SideSheetService): glued to the right edge, rounded only on the left
+.side-sheet {
+  @include mat.dialog-overrides((
+    container-shape: 28px 0 0 28px,
+    container-color: var(--mat-sys-surface),
+  ));
+}
+
+.side-sheet-full {
+  @include mat.dialog-overrides((
+    container-shape: 0,
+  ));
+}
+
+// nights taken by other reservations in the stay picker (DateRangeFieldComponent)
+.mat-calendar-body-cell.occupied-night .mat-calendar-body-cell-content {
+  color: var(--mat-sys-error);
+  text-decoration: line-through;
+}
+
 .mat-mdc-header-cell {
   background: var(--mat-sys-surface-container);
 }

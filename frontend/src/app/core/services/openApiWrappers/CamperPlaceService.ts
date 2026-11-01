@@ -2,8 +2,15 @@ import {Injectable, ResourceRef, computed, inject} from '@angular/core';
 import {rxResource} from '@angular/core/rxjs-interop';
 import {Page} from '@core/models/Page';
 import { ResourceType } from "./service-facade.service";
-import {AbstractService} from '@core/services/openApiWrappers/AbstractService';
-import {CamperPlaceDto, getCamperPlacesWithUniquePriceAndCamperTypeId, Pageable} from '../../../api';
+import {AbstractService, safePage} from '@core/services/openApiWrappers/AbstractService';
+import {
+  CamperPlaceDto,
+  getAvailableCamperPlaces,
+  getCalculatedReservationPrice,
+  getCamperPlacesWithUniquePriceAndCamperTypeId,
+  getOccupiedDates,
+  Pageable
+} from '../../../api';
 import {from, Observable} from 'rxjs';
 
 //a single page big enough to hold every camper place, null (unpaged) can not be combined with sorting
@@ -23,13 +30,28 @@ export class CamperPlaceService extends AbstractService {
     stream: () => this.serviceFacade.findBy(this.getType(), ALL_SORTED_BY_INDEX, {searchCriteria: []})
   });
 
-  public readonly camperPlaces = computed(() => this.unpagedCamperPlaceResource.value().content as CamperPlaceDto[]);
+  public readonly camperPlaces = computed(() => safePage(this.unpagedCamperPlaceResource).content as CamperPlaceDto[]);
 
   public readonly indexes = computed(() => this.camperPlaces().map(c => c.index!));
 
   protected override reloadResources() {
     super.reloadResources();
     this.unpagedCamperPlaceResource.reload();
+  }
+
+  //camper places with no reservation sharing a night with [from, to); dates in YYYY-MM-DD
+  public getAvailable(checkin: string, checkout: string): Observable<CamperPlaceDto[]> {
+    return from(this.serviceFacade.api.invoke(getAvailableCamperPlaces, {from: checkin, to: checkout}));
+  }
+
+  //future occupancy of a camper place: one list of occupied nights per reservation
+  public getOccupiedNights(camperPlaceId: number): Observable<string[][]> {
+    return from(this.serviceFacade.api.invoke(getOccupiedDates, {cpId: camperPlaceId}));
+  }
+
+  //the price list's total for the stay [checkin, checkout)
+  public getPrice(camperPlaceId: number, checkin: string, checkout: string): Observable<number> {
+    return from(this.serviceFacade.api.invoke(getCalculatedReservationPrice, {cpId: camperPlaceId, checkin, checkout}));
   }
 
   // camper places of the given type which have their own price (different from the type's default)

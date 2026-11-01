@@ -29,9 +29,9 @@ export type CamperPlaceFormData = { camperPlace?: CamperPlaceDto };
   standalone: true,
   styles: `
     form {
-      color: var(--text-primary);
       display: flex;
       flex-direction: column;
+      gap: var(--space-4);
     }
   `,
   template: `
@@ -82,7 +82,7 @@ export class CamperPlaceFormComponent implements OnInit {
   private readonly dialogRef = inject(MatDialogRef<CamperPlaceFormComponent>, { optional: true });
   private readonly fd: CamperPlaceFormData = inject<CamperPlaceFormData>(MAT_DIALOG_DATA, { optional: true }) || {};
 
-  protected camperPlaceTypes = this.camperPlaceTypeService.pageResource.value();
+  protected camperPlaceTypes = this.camperPlaceTypeService.page();
   protected isUpdate = !!this.fd?.camperPlace;
   protected formTitle = this.isUpdate ? 'Edytuj Parcelę' : 'Nowa Parcela';
 

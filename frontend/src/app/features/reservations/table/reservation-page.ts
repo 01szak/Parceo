@@ -27,10 +27,10 @@ import {todayIso} from '@shared/domain/iso-date';
   ],
   template: `
     <app-regular-table
-      [dtoData]="reservationService.pageResource.value().content"
+      [dtoData]="reservationService.page().content"
       [displayData]="mapToDisplayData()"
       [isLoading]="reservationService.pageResource.isLoading()"
-      [totalElements]="reservationService.pageResource.value().totalElements"
+      [totalElements]="reservationService.page().totalElements"
       [tabColumns]="fields()"
       [pageableSignal]="reservationService.pageable"
       [searchRequestSignal]="reservationService.searchRequest"
@@ -67,7 +67,7 @@ export class ReservationPage implements OnInit {
 
   protected mapToDisplayData() {
     const today = todayIso();
-    return this.reservationService.pageResource.value().content.map(r  => {
+    return this.reservationService.page().content.map(r  => {
       const res = r as ReservationDto;
       return {
         id: res.id,

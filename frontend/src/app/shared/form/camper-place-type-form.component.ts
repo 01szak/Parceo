@@ -28,9 +28,9 @@ export type CamperPlaceTypeFormData = { camperPlaceType?: CamperPlaceTypeDto };
   standalone: true,
   styles: `
     form {
-      color: var(--text-primary);
       display: flex;
       flex-direction: column;
+      gap: var(--space-4);
     }
   `,
   template: `

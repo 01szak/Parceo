@@ -11,9 +11,9 @@ import {CamperPlaceTypeDto} from '../../../../api';
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-regular-table
-      [dtoData]="camperPlaceTypeService.pageResource.value().content"
+      [dtoData]="camperPlaceTypeService.page().content"
       [isLoading]="camperPlaceTypeService.pageResource.isLoading()"
-      [totalElements]="camperPlaceTypeService.pageResource.value().totalElements"
+      [totalElements]="camperPlaceTypeService.page().totalElements"
       [tabColumns]="fields"
       [pageableSignal]="camperPlaceTypeService.pageable"
       [searchRequestSignal]="camperPlaceTypeService.searchRequest"

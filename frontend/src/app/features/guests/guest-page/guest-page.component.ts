@@ -22,9 +22,9 @@ import {GuestService} from '@core/services/openApiWrappers/GuestService';
   ],
   template:  `
     <app-regular-table
-      [dtoData]="guestService.pageResource.value().content"
+      [dtoData]="guestService.page().content"
       [isLoading]="guestService.pageResource.isLoading()"
-      [totalElements]="guestService.pageResource.value().totalElements"
+      [totalElements]="guestService.page().totalElements"
       [tabColumns]="columns"
       [pageableSignal]="guestService.pageable"
       [searchRequestSignal]="guestService.searchRequest"
