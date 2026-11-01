@@ -15,6 +15,8 @@ export interface QuerySort {
 export interface PagedQueryOptions {
   pageSize?: number;
   sort?: QuerySort | null;
+  //every matching row in one response (e.g. the occupancy of the next weeks); paging signals are ignored
+  unpaged?: boolean;
 }
 
 //the state of one list: owned by the component that shows it, never shared through a root service
@@ -56,7 +58,7 @@ export function createPagedQuery<T>(type: ResourceType, options: PagedQueryOptio
     }),
     stream: ({params}) => facade.findBy(
       type,
-      {page: params.page, size: params.size, sort: params.sort ? [params.sort.field, params.sort.direction] : []},
+      options.unpaged ? null : {page: params.page, size: params.size, sort: params.sort ? [params.sort.field, params.sort.direction] : []},
       {searchCriteria: params.criteria}
     ),
   });
