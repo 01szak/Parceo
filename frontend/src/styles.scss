@@ -102,53 +102,6 @@ html.light-theme { color-scheme: light; }
 html.dark-theme { color-scheme: dark; }
 
 // =========================================================
-// Legacy aliases. Old components still read these variables;
-// each one is removed together with the component that uses it.
-// =========================================================
-html {
-  --bg-main: var(--mat-sys-surface);
-  --bg-card: var(--mat-sys-surface-container-low);
-  --bg-inner: var(--mat-sys-surface-container-lowest);
-  --bg-overlay: var(--mat-sys-surface-container-high);
-  --primary: var(--mat-sys-primary);
-  --primary-hover: color-mix(in srgb, var(--mat-sys-primary) 88%, var(--mat-sys-on-primary));
-  --text-primary: var(--mat-sys-on-surface);
-  --text-secondary: var(--mat-sys-on-surface-variant);
-  --border-color: var(--mat-sys-outline-variant);
-  --glass: color-mix(in srgb, var(--mat-sys-surface) 60%, transparent);
-  --calendar-border: 1px solid var(--calendar-gridline);
-  --status-success: var(--app-success);
-  --status-error: var(--mat-sys-error);
-  --status-warning: var(--app-warning-container);
-  --shadow-md: var(--mat-sys-level2);
-  --shadow-lg: var(--mat-sys-level3);
-
-  --res-active-bg: var(--res-stay-container);
-  --res-active-border: var(--res-stay);
-  --res-active-unpaid-bg: var(--res-unpaid-container);
-  --res-active-unpaid-border: var(--res-unpaid);
-  --res-coming-bg: var(--res-arrive-container);
-  --res-coming-border: var(--res-arrive);
-  --res-expired-bg: var(--res-leave-container);
-  --res-expired-border: var(--res-leave);
-  --res-unpaid-bg: var(--res-late-container);
-  --res-unpaid-border: var(--res-late);
-}
-
-.res-info-circle {
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
-.res-active { background-color: var(--res-active-bg); border: 2px solid var(--res-active-border); color: var(--res-on-stay-container); }
-.res-active-unpaid { background-color: var(--res-active-unpaid-bg); border: 2px solid var(--res-active-unpaid-border); color: var(--res-on-unpaid-container); }
-.res-coming { background-color: var(--res-coming-bg); border: 2px solid var(--res-coming-border); color: var(--res-on-arrive-container); }
-.res-expired { background-color: var(--res-expired-bg); border: 2px solid var(--res-expired-border); color: var(--res-on-leave-container); }
-.res-unpaid { background-color: var(--res-unpaid-bg); border: 2px solid var(--res-unpaid-border); color: var(--res-on-late-container); }
-
-// =========================================================
 // Base
 // =========================================================
 html, body {
@@ -174,13 +127,6 @@ body {
 .nowrap {
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
-}
-
-.spinnerContainer {
-  width: 100%;
-  height: 100%;
-  display: grid;
-  place-content: center;
 }
 
 :focus-visible {
@@ -288,31 +234,4 @@ html {
     supporting-text-color: var(--app-on-warning-container),
     button-color: var(--app-on-warning-container),
   ));
-}
-
-// Legacy layout helpers still used by the settings forms (removed in step 5)
-.rowsContainer {
-  max-height: 55vh;
-  overflow-y: auto;
-  overflow-x: hidden;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
-}
-
-.rowForm {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: var(--space-4);
-  padding: 18px;
-  border-radius: var(--radius-lg);
-  background: var(--mat-sys-surface-container-low);
-}
-
-.rowForm:hover {
-  background: color-mix(in srgb, var(--mat-sys-on-surface) 8%, var(--mat-sys-surface-container-low));
-}
-
-.field {
-  width: 100%;
 }

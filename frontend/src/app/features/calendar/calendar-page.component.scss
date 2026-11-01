@@ -59,3 +59,29 @@
   font: var(--mat-sys-body-medium);
   color: var(--mat-sys-on-surface-variant);
 }
+
+@media (max-width: 599.98px) {
+  .navigation {
+    flex-wrap: wrap;
+    flex-basis: 100%;
+
+    h1 {
+      flex: 1 1 100%;
+      order: -1;
+      margin: 0;
+      white-space: normal;
+    }
+  }
+
+  .controls {
+    flex-basis: 100%;
+  }
+
+  .type-filter {
+    width: 100%;
+  }
+
+  .hint {
+    text-align: left;
+  }
+}

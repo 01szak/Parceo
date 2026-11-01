@@ -28,6 +28,12 @@
   }
 
   <main class="content">
+    @if (layout() === 'bar') {
+      <a class="camping phone-camping" routerLink="/ustawienia/kemping" [attr.aria-label]="'Kemping: ' + organisation().name">
+        <span class="camping-initials" aria-hidden="true">{{ organisationInitials() }}</span>
+        <span class="camping-name">{{ organisation().name }}</span>
+      </a>
+    }
     <router-outlet />
   </main>
 
