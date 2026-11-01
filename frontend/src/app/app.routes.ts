@@ -5,6 +5,8 @@ import {CalendarPageComponent} from '@features/calendar/calendar-page.component'
 import {SettingsPage} from '@features/settings/settings-page/settings-page.component';
 import {SettingsPlacesComponent} from '@features/settings/places/settings-places.component';
 import {SettingsAppearanceComponent} from '@features/settings/appearance/settings-appearance.component';
+import {SettingsCampingComponent} from '@features/settings/camping/settings-camping.component';
+import {SettingsStaffComponent} from '@features/settings/staff/settings-staff.component';
 import {AppShellComponent} from '@core/layout/app-shell.component';
 import {TodayPageComponent} from '@features/today/today-page.component';
 import {authGuard, guestGuard, HOME_PATH, LOGIN_PATH} from '@core/guards/auth.guard';
@@ -23,7 +25,9 @@ export const routes: Routes = [
       {path: 'raporty', component: ReportsPageComponent, title: title('Raporty')},
       {
         path: 'ustawienia', component: SettingsPage, children: [
+          {path: 'kemping', component: SettingsCampingComponent, title: title('Kemping')},
           {path: 'parcele', component: SettingsPlacesComponent, title: title('Parcele i ceny')},
+          {path: 'pracownicy', component: SettingsStaffComponent, title: title('Pracownicy')},
           {path: 'wyglad', component: SettingsAppearanceComponent, title: title('Wygląd')},
           {path: '', pathMatch: 'full', redirectTo: 'parcele'},
         ]

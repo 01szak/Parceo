@@ -1,0 +1,55 @@
+<section class="card" aria-labelledby="me-title">
+  <h2 id="me-title">Moje konto</h2>
+  @if (me(); as me) {
+    <dl>
+      <div><dt>Nazwa użytkownika</dt><dd>{{ me.username }}</dd></div>
+      <div><dt>Email</dt><dd>{{ me.email }}</dd></div>
+      <div><dt>Rola</dt><dd>{{ myRole() }}</dd></div>
+    </dl>
+  } @else {
+    <p class="lead">Wczytuję dane konta…</p>
+  }
+  <div class="actions">
+    <button mat-stroked-button type="button" class="danger" (click)="logout()">
+      <mat-icon>logout</mat-icon>
+      Wyloguj się
+    </button>
+  </div>
+</section>
+
+<section class="card" aria-labelledby="staff-title">
+  <header>
+    <div>
+      <h2 id="staff-title">Zaproszenia</h2>
+      <p class="lead">Osoby, które mają dostać dostęp do kempingu.</p>
+    </div>
+    <button mat-flat-button type="button" class="tonal" (click)="invite()">
+      <mat-icon>person_add</mat-icon>
+      Zaproś osobę
+    </button>
+  </header>
+
+  <app-mock-notice>
+    Zaproszenia są na razie tylko podglądem: zapisują się w tej przeglądarce i nikt nie dostaje emaila.
+  </app-mock-notice>
+
+  @if (invitations().length) {
+    <ul>
+      @for (invitation of invitations(); track invitation.email) {
+        <li>
+          <mat-icon aria-hidden="true">mail</mat-icon>
+          <span class="person">
+            <strong>{{ invitation.email }}</strong>
+            <span>{{ roleLabel(invitation.role) }}, zaproszenie z {{ dayMonthYear(invitation.sentOn) }}</span>
+          </span>
+          <button mat-icon-button type="button" class="danger" (click)="cancelInvitation(invitation)"
+                  [attr.aria-label]="'Anuluj zaproszenie dla ' + invitation.email">
+            <mat-icon>close</mat-icon>
+          </button>
+        </li>
+      }
+    </ul>
+  } @else {
+    <p class="lead">Nie ma zaproszeń.</p>
+  }
+</section>

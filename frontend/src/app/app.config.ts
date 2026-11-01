@@ -5,6 +5,7 @@ import {ThemeService} from '@core/services/ThemeService';
 import {TextSizeService} from '@core/services/TextSizeService';
 import {MatPaginatorIntl} from '@angular/material/paginator';
 import {PolishPaginatorIntl} from '@core/i18n/polish-paginator-intl';
+import {provideMocks} from '@core/mocks/provide-mocks';
 import {provideRouter} from '@angular/router';
 
 import {routes} from './app.routes';
@@ -48,6 +49,8 @@ export const appConfig: ApplicationConfig = {
     provideApiConfiguration('/api'),
     {provide: MAT_FORM_FIELD_DEFAULT_OPTIONS, useValue: FORM_FIELD_DEFAULTS},
     {provide: MatPaginatorIntl, useClass: PolishPaginatorIntl},
+    //MOCK: data the backend does not provide yet (PLAN.md, "Mocki we frontendzie")
+    ...provideMocks(),
     provideAppInitializer(() => {
       inject(MatIconRegistry).setDefaultFontSetClass('material-symbols-rounded');
       //apply the stored theme and text size before the first render

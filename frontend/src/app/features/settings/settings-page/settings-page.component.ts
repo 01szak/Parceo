@@ -10,13 +10,14 @@ interface SettingsTab {
   icon: string;
 }
 
-//Kemping and Pracownicy wait for backend endpoints (see PLAN.md)
 const TABS: readonly SettingsTab[] = [
+  {path: 'kemping', label: 'Kemping', icon: 'cottage'},
   {path: 'parcele', label: 'Parcele i ceny', icon: 'grid_view'},
+  {path: 'pracownicy', label: 'Pracownicy', icon: 'group'},
   {path: 'wyglad', label: 'Wygląd', icon: 'contrast'},
 ];
 
-//every category has its own address (ustawienia/parcele, ustawienia/wyglad), so links and "back" work
+//every category has its own address (ustawienia/kemping, ustawienia/parcele…), so links and "back" work
 @Component({
   selector: 'settings-page',
   imports: [RouterOutlet, RouterLink, RouterLinkActive, MatTabNav, MatTabLink, MatTabNavPanel, MatIcon, PageHeaderComponent],
