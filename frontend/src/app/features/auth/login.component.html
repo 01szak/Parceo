@@ -1,30 +1,45 @@
-<mat-card>
-  <mat-card-content>
-    <h2>Login</h2>
-    <br>
-    <mat-hint style="color: red; font-size: small">{{ errorMessage }}</mat-hint>
-    <br>
+<main class="page">
+  <section class="card" aria-labelledby="login-title">
+    <app-parceo-logo [size]="56" [showName]="false" />
 
-    <mat-form-field class="writtenText loginInput" appearance="outline">
-      <mat-label>Email</mat-label>
-      <input matInput type="text" id="loginEmail" name="loginEmail" [(ngModel)]="this.request.login"
-             (keydown.enter)="passwordField.focus()">
-    </mat-form-field>
-    <br>
-    <mat-form-field class="writtenText loginInput"  appearance="outline">
-      <mat-label>Password</mat-label>
-      <input matInput type="password" id="password" name="password" #passwordField
-             [(ngModel)]="this.request.password" (keydown.enter)="login()">
+    <div class="heading">
+      <h1 id="login-title">Logowanie</h1>
+      <p>Zaloguj się do panelu swojego kempingu.</p>
+    </div>
 
-    </mat-form-field>
-    <br>
+    @if (errorMessage()) {
+      <div class="error-banner" role="alert">
+        <mat-icon aria-hidden="true">error</mat-icon>
+        <span>{{ errorMessage() }}</span>
+      </div>
+    }
 
-    <app-form-buttons
-      [firstButtonText]="'Zarejestruj się'"
-      [secondButtonText]="'Zaloguj się'"
-      [secondAction]="login"
-    />
+    <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+      <mat-form-field>
+        <mat-label>Login</mat-label>
+        <input matInput formControlName="login" autocomplete="username" required>
+        <mat-error>Podaj login.</mat-error>
+      </mat-form-field>
 
-  </mat-card-content>
-</mat-card>
-<footer></footer>
+      <mat-form-field>
+        <mat-label>Hasło</mat-label>
+        <input matInput formControlName="password" autocomplete="current-password" required
+               [type]="passwordVisible() ? 'text' : 'password'">
+        <button mat-icon-button matSuffix type="button" (click)="togglePasswordVisibility()"
+                [attr.aria-label]="passwordVisible() ? 'Ukryj hasło' : 'Pokaż hasło'"
+                [attr.aria-pressed]="passwordVisible()">
+          <mat-icon>{{ passwordVisible() ? 'visibility_off' : 'visibility' }}</mat-icon>
+        </button>
+        <mat-error>Podaj hasło.</mat-error>
+      </mat-form-field>
+
+      <button mat-flat-button type="submit" class="submit" [disabled]="submitting()">
+        @if (submitting()) {
+          <mat-progress-spinner mode="indeterminate" diameter="20" aria-label="Logowanie" />
+        } @else {
+          Zaloguj się
+        }
+      </button>
+    </form>
+  </section>
+</main>

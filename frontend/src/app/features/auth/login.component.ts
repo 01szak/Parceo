@@ -1,75 +1,85 @@
-import {Component, EventEmitter, inject, input, Output} from '@angular/core';
-import {MatFormField, MatHint, MatLabel} from '@angular/material/form-field';
-import {FormsModule} from '@angular/forms';
+import {ChangeDetectionStrategy, Component, inject, signal} from '@angular/core';
+import {FormControl, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
+import {ActivatedRoute, Router} from '@angular/router';
+import {HttpErrorResponse} from '@angular/common/http';
+import {MatFormField, MatLabel, MatError, MatSuffix} from '@angular/material/form-field';
 import {MatInput} from '@angular/material/input';
-import {MatCard, MatCardContent} from '@angular/material/card';
-import {CommonModule} from '@angular/common';
-import {Router, RouterModule} from '@angular/router';
-import {FormButtonsComponent} from '@shared/ui/buttons/form-buttons.component';
+import {MatButton, MatIconButton} from '@angular/material/button';
+import {MatIcon} from '@angular/material/icon';
+import {MatProgressSpinner} from '@angular/material/progress-spinner';
 import {Api} from '../../api/api';
 import {login} from '../../api/fn/auth-controller/login';
-import {LoginRequest} from '../../api/models/login-request';
 import {SessionService} from '@core/services/SessionService';
+import {HOME_PATH} from '@core/guards/auth.guard';
+import {ParceoLogoComponent} from '@shared/ui/logo/parceo-logo.component';
+
+interface LoginResponse {
+  token?: string;
+}
+
+const WRONG_CREDENTIALS = 'Nieprawidłowy login lub hasło.';
+const SERVER_UNAVAILABLE = 'Nie udało się połączyć z serwerem. Sprawdź internet i spróbuj ponownie.';
 
 @Component({
   selector: 'app-login',
   imports: [
+    ReactiveFormsModule,
     MatFormField,
-    FormsModule,
-    MatInput,
-    MatHint,
     MatLabel,
-    MatCard,
-    MatCardContent,
-    CommonModule,
-    RouterModule,
-    FormButtonsComponent
+    MatError,
+    MatSuffix,
+    MatInput,
+    MatButton,
+    MatIconButton,
+    MatIcon,
+    MatProgressSpinner,
+    ParceoLogoComponent,
   ],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './login.component.html',
   styleUrl: './login.component.css',
-  standalone: true
 })
 export class LoginComponent {
-  private api = inject(Api);
-  private sessionService = inject(SessionService);
-  private router = inject(Router);
+  private readonly api = inject(Api);
+  private readonly session = inject(SessionService);
+  private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
 
-  @Output() onSubmitLoginEvent = new EventEmitter();
-  @Output() onSubmitRegisterEvent = new EventEmitter();
+  protected readonly form = new FormGroup({
+    login: new FormControl('', {nonNullable: true, validators: [Validators.required]}),
+    password: new FormControl('', {nonNullable: true, validators: [Validators.required]}),
+  });
 
-  active: string = "login";
-  isLogged: boolean = false;
-  errorMessage: string = "";
+  protected readonly submitting = signal(false);
+  protected readonly errorMessage = signal('');
+  protected readonly passwordVisible = signal(false);
 
-  onLoginTab(): void {
-    this.active = 'login';
+  protected togglePasswordVisibility(): void {
+    this.passwordVisible.update(visible => !visible);
   }
 
-  request: LoginRequest = {
-    login: '',
-    password: ''
+  protected async submit(): Promise<void> {
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      return;
+    }
+
+    this.submitting.set(true);
+    this.errorMessage.set('');
+    try {
+      const response = await this.api.invoke(login, {body: this.form.getRawValue()}) as LoginResponse;
+      if (!response?.token) throw new Error('Missing token in the login response');
+      this.session.setToken(response.token);
+      await this.router.navigateByUrl(this.route.snapshot.queryParamMap.get('powrot') ?? `/${HOME_PATH}`);
+    } catch (error) {
+      this.errorMessage.set(this.messageFor(error));
+    } finally {
+      this.submitting.set(false);
+    }
   }
 
-  login = () => {
-    this.onSubmitLoginEvent.emit({"login": this.request.login, "password": this.request.password});
-    this.api.invoke(login, { body: this.request }).then(
-      (response: any) => {
-        if (response && response.token) {
-          this.sessionService.setToken(response.token);
-          this.isLogged = true;
-          this.router.navigate(["/admin-page/calendar"]);
-        }
-      },
-      (error) => {
-        this.errorMessage = "Wrong login or password";
-        console.error(error);
-      }
-    );
+  private messageFor(error: unknown): string {
+    const unreachable = error instanceof HttpErrorResponse && (error.status === 0 || error.status >= 500);
+    return unreachable ? SERVER_UNAVAILABLE : WRONG_CREDENTIALS;
   }
-
-  onRegisterTab(): void {
-    this.active = 'register';
-  }
-
-  protected readonly input = input;
 }

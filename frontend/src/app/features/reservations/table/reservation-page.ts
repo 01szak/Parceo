@@ -12,6 +12,8 @@ import {
 import {ReservationFormData} from '@shared/form/reservation-form.component';
 import {ReservationDto} from '../../../api';
 import {CamperPlaceService} from '@core/services/openApiWrappers/CamperPlaceService';
+import {stayStatus} from '@shared/domain/stay-status';
+import {todayIso} from '@shared/domain/iso-date';
 
 @Component({
   selector: 'reservations',
@@ -64,6 +66,7 @@ export class ReservationPage implements OnInit {
   }
 
   protected mapToDisplayData() {
+    const today = todayIso();
     return this.reservationService.pageResource.value().content.map(r  => {
       const res = r as ReservationDto;
       return {
@@ -72,7 +75,7 @@ export class ReservationPage implements OnInit {
         checkout: res.checkout,
         guest: `${res.guest?.firstname || ''} ${res.guest?.lastname || ''}`.trim(),
         camperPlace: res.camperPlace?.index ?? '',
-        reservationStatus: res.reservationStatus!,
+        reservationStatus: stayStatus(res, today),
         paid: res.paid,
         creator: `${res.creator?.username || ''}`
       }

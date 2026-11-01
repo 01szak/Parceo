@@ -1,17 +1,31 @@
-import {TestBed} from '@angular/core/testing';
-import {HttpInterceptorFn} from '@angular/common/http';
+import {HttpHandler, HttpRequest} from '@angular/common/http';
+import {of} from 'rxjs';
 
-import {authInterceptor} from './auth.interceptor';
+import {AuthInterceptor} from './auth.interceptor';
 
-describe('authInterceptor', () => {
-  const interceptor: HttpInterceptorFn = (req, next) =>
-    TestBed.runInInjectionContext(() => authInterceptor(req, next));
+describe('AuthInterceptor', () => {
+  const interceptor = new AuthInterceptor();
+  let forwarded: HttpRequest<unknown> | undefined;
+  const handler: HttpHandler = {
+    handle: (req) => {
+      forwarded = req;
+      return of();
+    }
+  };
 
-  beforeEach(() => {
-    TestBed.configureTestingModule({});
+  afterEach(() => {
+    sessionStorage.removeItem('jwtToken');
+    forwarded = undefined;
   });
 
-  it('should be created', () => {
-    expect(interceptor).toBeTruthy();
+  it('adds the bearer token when the user is logged in', () => {
+    sessionStorage.setItem('jwtToken', 'abc');
+    interceptor.intercept(new HttpRequest('GET', '/api/user'), handler).subscribe();
+    expect(forwarded?.headers.get('Authorization')).toBe('Bearer abc');
+  });
+
+  it('leaves the request untouched without a token', () => {
+    interceptor.intercept(new HttpRequest('GET', '/api/user'), handler).subscribe();
+    expect(forwarded?.headers.has('Authorization')).toBeFalse();
   });
 });

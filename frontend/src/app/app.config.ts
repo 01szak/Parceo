@@ -1,4 +1,7 @@
-import {ApplicationConfig, provideZoneChangeDetection} from '@angular/core';
+import {ApplicationConfig, inject, provideAppInitializer, provideZoneChangeDetection} from '@angular/core';
+import {MAT_FORM_FIELD_DEFAULT_OPTIONS, MatFormFieldDefaultOptions} from '@angular/material/form-field';
+import {MatIconRegistry} from '@angular/material/icon';
+import {ThemeService} from '@core/services/ThemeService';
 import {provideRouter} from '@angular/router';
 
 import {routes} from './app.routes';
@@ -25,6 +28,9 @@ export const DATE_FORMATS = {
   },
 };
 
+//one field variant in the whole app; hints take space only when they are shown
+const FORM_FIELD_DEFAULTS: MatFormFieldDefaultOptions = {appearance: 'outline', subscriptSizing: 'dynamic'};
+
 export const appConfig: ApplicationConfig = {
   providers: [
     provideZoneChangeDetection({eventCoalescing: true}),
@@ -36,5 +42,10 @@ export const appConfig: ApplicationConfig = {
     provideMomentDateAdapter(DATE_FORMATS),
     { provide: MAT_DATE_LOCALE, useValue: 'pl-PL' },
     provideApiConfiguration('/api'),
+    {provide: MAT_FORM_FIELD_DEFAULT_OPTIONS, useValue: FORM_FIELD_DEFAULTS},
+    provideAppInitializer(() => {
+      inject(MatIconRegistry).setDefaultFontSetClass('material-symbols-rounded');
+      inject(ThemeService); //applies the stored theme before the first render
+    }),
   ]
 };
