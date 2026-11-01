@@ -1,7 +1,7 @@
 import {Routes} from '@angular/router';
 import {LoginComponent} from '@features/auth/login.component';
 import {StatisticsPage} from '@features/statistics/statistics-page/statistics-page';
-import {CalendarPage} from '@features/reservations/calendar/calendar-page';
+import {CalendarPageComponent} from '@features/calendar/calendar-page.component';
 import {SettingsPage} from '@features/settings/settings-page/settings-page.component';
 import {SettingsPlacesComponent} from '@features/settings/places/settings-places.component';
 import {SettingsAppearanceComponent} from '@features/settings/appearance/settings-appearance.component';
@@ -19,7 +19,7 @@ export const routes: Routes = [
     canActivate: [authGuard],
     children: [
       {path: HOME_PATH, component: TodayPageComponent, title: title('Dziś')},
-      {path: 'kalendarz', component: CalendarPage, title: title('Kalendarz')},
+      {path: 'kalendarz', component: CalendarPageComponent, title: title('Kalendarz')},
       {path: 'raporty', component: StatisticsPage, title: title('Raporty')},
       {
         path: 'ustawienia', component: SettingsPage, children: [
