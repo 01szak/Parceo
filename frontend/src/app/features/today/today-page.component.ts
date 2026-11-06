@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, Component, computed, effect, inject, signal} from '@angular/core';
+import {ChangeDetectionStrategy, Component, computed, effect, inject, signal, untracked} from '@angular/core';
 import {MatDialog} from '@angular/material/dialog';
 import {MatButton} from '@angular/material/button';
 import {MatIcon} from '@angular/material/icon';
@@ -17,7 +17,7 @@ import {availabilityPerDay, DayAvailability, freeNightsInARow, Stay} from '@shar
 import {arrivalsSentence, unpaidSentence} from '@shared/domain/today-summary';
 import {addDays, nightsBetween, nightsLabel} from '@shared/domain/stay-range';
 import {formatPln} from '@shared/domain/money';
-import {todayIso} from '@shared/domain/iso-date';
+import {TodayService} from '@core/services/TodayService';
 
 //how many rows each card shows; the rest is in the reservation table
 const CARD_LIMIT = 6;
@@ -39,8 +39,9 @@ export class TodayPageComponent {
   private readonly camperPlaces = inject(CamperPlaceService);
   private readonly dialog = inject(MatDialog);
 
-  private readonly today = todayIso();
-  protected readonly dateLabel = capitalize(moment().locale('pl').format('dddd, D MMMM YYYY'));
+  //moves on at midnight: the lists, the free places and the date at the top change together
+  private readonly today = inject(TodayService).today;
+  protected readonly dateLabel = computed(() => capitalize(moment(this.today()).locale('pl').format('dddd, D MMMM YYYY')));
 
   protected readonly arrivals = createPagedQuery<ReservationDto>(ResourceType.RESERVATION, {pageSize: CARD_LIMIT});
   protected readonly departures = createPagedQuery<ReservationDto>(ResourceType.RESERVATION, {pageSize: CARD_LIMIT});
@@ -57,7 +58,7 @@ export class TodayPageComponent {
   private readonly stays = computed<Stay[]>(() => this.occupancy.page().content
     .filter(r => r.camperPlace?.id !== undefined && r.checkin && r.checkout)
     .map(r => ({camperPlaceId: r.camperPlace!.id!, checkin: r.checkin!, checkout: r.checkout!})));
-  protected readonly availability = computed(() => availabilityPerDay(this.placeIds(), this.stays(), this.today, this.stripRange()));
+  protected readonly availability = computed(() => availabilityPerDay(this.placeIds(), this.stays(), this.today(), this.stripRange()));
 
   protected readonly arrivalsText = computed(() =>
     arrivalsSentence(this.arrivals.page().totalElements, this.departures.page().totalElements));
@@ -76,15 +77,20 @@ export class TodayPageComponent {
       if (!this.sources.some(q => q.loading()) && !this.failed()) this.loadedOnce.set(true);
     });
 
-    const today = this.today;
-    this.arrivals.criteria.set([equals('checkin', today)]);
-    this.departures.criteria.set([equals('checkout', today)]);
-    //guests already on site or arriving today who have not paid yet
-    this.unpaid.criteria.set([equals('paid', 'false'), {key: 'checkin', operation: 'LESS_THEN', value: addDays(today, 1), joinOperator: 'AND'}]);
-    this.occupancy.criteria.set([
-      {key: 'checkin', operation: 'LESS_THEN', value: addDays(today, OCCUPANCY_HORIZON), joinOperator: 'AND'},
-      {key: 'checkout', operation: 'GREATER_THEN', value: today, joinOperator: 'AND'},
-    ]);
+    //new criteria for a new day; each query reloads by itself when its criteria change
+    effect(() => {
+      const today = this.today();
+      untracked(() => {
+        this.arrivals.criteria.set([equals('checkin', today)]);
+        this.departures.criteria.set([equals('checkout', today)]);
+        //guests already on site or arriving today who have not paid yet
+        this.unpaid.criteria.set([equals('paid', 'false'), {key: 'checkin', operation: 'LESS_THEN', value: addDays(today, 1), joinOperator: 'AND'}]);
+        this.occupancy.criteria.set([
+          {key: 'checkin', operation: 'LESS_THEN', value: addDays(today, OCCUPANCY_HORIZON), joinOperator: 'AND'},
+          {key: 'checkout', operation: 'GREATER_THEN', value: today, joinOperator: 'AND'},
+        ]);
+      });
+    });
   }
 
   protected newReservation(): void {
@@ -102,7 +108,7 @@ export class TodayPageComponent {
   protected showFreeParcels(day: DayAvailability): void {
     const free = new Set(day.freePlaceIds);
     //the occupancy is known only up to the horizon counted from today
-    const knownNights = nightsBetween(day.date, addDays(this.today, OCCUPANCY_HORIZON));
+    const knownNights = nightsBetween(day.date, addDays(this.today(), OCCUPANCY_HORIZON));
     const parcels: FreeParcel[] = this.camperPlaces.camperPlaces()
       .filter(place => free.has(place.id!))
       .map(place => ({place, freeNights: freeNightsInARow(place.id!, this.stays(), day.date, knownNights)}));
@@ -137,7 +143,8 @@ export class TodayPageComponent {
   }
 
   private paymentDetails(r: ReservationDto): string {
-    const when = r.checkout === this.today ? 'wyjazd dziś' : r.checkin === this.today ? 'przyjazd dziś' : `parcela ${r.camperPlace?.index}`;
+    const today = this.today();
+    const when = r.checkout === today ? 'wyjazd dziś' : r.checkin === today ? 'przyjazd dziś' : `parcela ${r.camperPlace?.index}`;
     return [r.price === undefined ? '' : formatPln(r.price), when].filter(Boolean).join(', ');
   }
 }

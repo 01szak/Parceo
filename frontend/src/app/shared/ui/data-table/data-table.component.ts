@@ -30,6 +30,8 @@ export const PAGE_SIZES = [10, 25, 50];
  * and reacts to the outputs; custom cells come as <ng-template appCell="key" let-row>.
  * The toolbar is projected with [tableToolbar], a custom empty state with [tableEmpty].
  */
+const INTERACTIVE = 'button, a, input, select, textarea, [role="button"], [role="checkbox"], [role="menuitem"]';
+
 @Component({
   selector: 'app-data-table',
   imports: [NgTemplateOutlet, MatTableModule, MatSort, MatSortHeader, MatPaginator, MatProgressBar, EmptyStateComponent],
@@ -87,7 +89,12 @@ export class DataTableComponent<T> {
     this.pageChange.emit({pageIndex: event.pageIndex, pageSize: event.pageSize});
   }
 
-  protected onRowClick(row: T): void {
-    if (this.clickableRows()) this.rowClick.emit(row);
+  //a click or Enter on a control inside a cell (edit, delete, menu, checkbox) belongs to that control, not to the row
+  protected onRowClick(row: T, event: Event): void {
+    if (!this.clickableRows()) return;
+    const rowElement = event.currentTarget as HTMLElement;
+    const control = (event.target as HTMLElement).closest(INTERACTIVE);
+    if (control && control !== rowElement && rowElement.contains(control)) return;
+    this.rowClick.emit(row);
   }
 }

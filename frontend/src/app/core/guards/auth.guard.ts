@@ -13,8 +13,11 @@ export const authGuard: CanActivateFn = (_route, state) => {
   return inject(Router).createUrlTree([LOGIN_PATH], {queryParams: {powrot: state.url}});
 };
 
-//the login page: a logged in user goes straight to the panel
+//the login page: a logged in user goes straight to the panel; an expired or broken token is removed,
+//because the backend rejects every request that carries one, the login request too
 export const guestGuard: CanActivateFn = () => {
-  if (!inject(SessionService).isAuthenticated()) return true;
-  return inject(Router).createUrlTree([HOME_PATH]);
+  const session = inject(SessionService);
+  if (session.isAuthenticated()) return inject(Router).createUrlTree([HOME_PATH]);
+  session.clear();
+  return true;
 };

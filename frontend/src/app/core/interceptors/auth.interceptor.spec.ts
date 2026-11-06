@@ -28,4 +28,10 @@ describe('AuthInterceptor', () => {
     interceptor.intercept(new HttpRequest('GET', '/api/user'), handler).subscribe();
     expect(forwarded?.headers.has('Authorization')).toBeFalse();
   });
+
+  it('does not send an old token with the login request', () => {
+    sessionStorage.setItem('jwtToken', 'expired');
+    interceptor.intercept(new HttpRequest('POST', 'http://localhost:8080/auth/login', {}), handler).subscribe();
+    expect(forwarded?.headers.has('Authorization')).toBeFalse();
+  });
 });
