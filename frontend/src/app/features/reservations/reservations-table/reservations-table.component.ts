@@ -14,6 +14,7 @@ import {ReservationService} from '@core/services/openApiWrappers/ReservationServ
 import {PopupFormService} from '@core/services/PopupFormService';
 import {PopupConfirmationService} from '@core/services/PopupConfirmationService';
 import {SavedFiltersService} from '@core/services/SavedFiltersService';
+import {TodayService} from '@core/services/TodayService';
 import {ColumnDef, DataTableComponent, TablePage} from '@shared/ui/data-table/data-table.component';
 import {CellDefDirective} from '@shared/ui/data-table/cell-def.directive';
 import {FilterBarComponent, FilterValues} from '@shared/ui/filter-bar/filter-bar.component';
@@ -31,7 +32,6 @@ import {
 import {showsUnpaidBadge, StayStatus, stayStatus} from '@shared/domain/stay-status';
 import {nightsBetween} from '@shared/domain/stay-range';
 import {formatPln} from '@shared/domain/money';
-import {todayIso} from '@shared/domain/iso-date';
 import {DateDelimiter, DateFormater} from '@shared/helper/DateFormater';
 
 //one table row: the reservation and its values formatted for display
@@ -133,8 +133,11 @@ export class ReservationsTableComponent {
   protected readonly filterValues = computed(() => this.filters() as unknown as FilterValues);
   protected readonly narrowed = computed(() => hasFilters(this.effectiveFilters()) || !!this.search().trim());
 
+  //statuses and views ("Aktywne", "Nadchodzące") are counted from today, which moves on at midnight
+  private readonly today = inject(TodayService).today;
+
   protected readonly rows = computed<TableRow[]>(() => {
-    const today = todayIso();
+    const today = this.today();
     return this.query.page().content.map(reservation => ({
       reservation,
       guest: `${reservation.guest?.firstname ?? ''} ${reservation.guest?.lastname ?? ''}`.trim(),
@@ -152,7 +155,7 @@ export class ReservationsTableComponent {
 
   constructor() {
     effect(() => {
-      const criteria = reservationCriteria(this.baseView().id, this.effectiveFilters(), this.search(), todayIso());
+      const criteria = reservationCriteria(this.baseView().id, this.effectiveFilters(), this.search(), this.today());
       const sort = this.sortOverride() ?? this.baseView().sort;
       untracked(() => {
         this.query.criteria.set(criteria);

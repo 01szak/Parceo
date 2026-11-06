@@ -3,6 +3,7 @@
   [isUpdate]="isUpdate"
   [deleteAction]="confirmDelete"
   [proceedAction]="save"
+  [saving]="saving()"
   [saveLabel]="isUpdate ? 'Zapisz zmiany' : 'Zapisz rezerwację'">
 
   <form [formGroup]="form" class="sections" (ngSubmit)="save()">

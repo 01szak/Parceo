@@ -1,6 +1,6 @@
 <div class="top">
   <section class="summary" aria-labelledby="summary-title">
-    <p class="date">{{ dateLabel }}</p>
+    <p class="date">{{ dateLabel() }}</p>
     @if (failed()) {
       <h1 id="summary-title">Nie udało się wczytać danych na dziś.</h1>
       <p class="lead">Sprawdź połączenie z internetem i odśwież stronę.</p>

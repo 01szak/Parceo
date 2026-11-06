@@ -82,11 +82,11 @@
 
     <ng-template appCell="actions" let-row>
       <span class="actions">
-        <button mat-icon-button type="button" (click)="editPlace(row); $event.stopPropagation()"
+        <button mat-icon-button type="button" (click)="editPlace(row)"
                 [attr.aria-label]="'Zmień parcelę ' + row.index">
           <mat-icon>edit</mat-icon>
         </button>
-        <button mat-icon-button type="button" class="danger" (click)="deletePlace(row); $event.stopPropagation()"
+        <button mat-icon-button type="button" class="danger" (click)="deletePlace(row)"
                 [attr.aria-label]="'Usuń parcelę ' + row.index">
           <mat-icon>delete</mat-icon>
         </button>
