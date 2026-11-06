@@ -5,6 +5,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -34,6 +35,13 @@ public class Organisation extends DbObject {
     @NotBlank
     @Column(name = "address")
     private String address;
+
+    @Column(name = "phone_number")
+    private String phoneNumber;
+
+    @Email
+    @Column(name = "email")
+    private String email;
 
     @NotBlank
     @Column(name = "web_app_api_key", nullable = false)

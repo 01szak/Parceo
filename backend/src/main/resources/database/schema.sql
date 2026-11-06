@@ -166,3 +166,10 @@ CREATE TABLE IF NOT EXISTS system_task (
     status_message VARCHAR(255),
     CONSTRAINT fk_system_task_parent FOREIGN KEY (parent_task_id) REFERENCES system_task(id)
 );
+
+-- changeset 01szak:organisation_contact_columns
+-- preconditions onFail:MARK_RAN
+-- precondition-sql-check expectedResult:0 SELECT COUNT(*) FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'organisation' AND column_name = 'phone_number 'AND column_name = 'email'
+ALTER TABLE organisation
+    ADD COLUMN phone_number VARCHAR(50),
+    ADD COLUMN email VARCHAR(255);

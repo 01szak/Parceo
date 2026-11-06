@@ -1,6 +1,7 @@
-package pl.parceo.service.core;
+package pl.parceo.repository;
 
 import pl.parceo.model.entity.Organisation;
-import pl.parceo.repository.CRUDRepository;
+import org.springframework.stereotype.Repository;
 
+@Repository
 public interface OrganisationRepository extends CRUDRepository<Organisation> {}
