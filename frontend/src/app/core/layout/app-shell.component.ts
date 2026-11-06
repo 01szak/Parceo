@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, Component, computed, inject, OnInit} from '@angular/core';
+import {ChangeDetectionStrategy, Component, computed, inject} from '@angular/core';
 import {Router, RouterLink, RouterLinkActive, RouterOutlet} from '@angular/router';
 import {BreakpointObserver} from '@angular/cdk/layout';
 import {toSignal} from '@angular/core/rxjs-interop';
@@ -8,10 +8,10 @@ import {MatIcon} from '@angular/material/icon';
 import {MatDivider} from '@angular/material/divider';
 import {MatMenu, MatMenuItem, MatMenuTrigger} from '@angular/material/menu';
 import {ParceoLogoComponent} from '@shared/ui/logo/parceo-logo.component';
-import {EmployeeService} from '@core/services/openApiWrappers/EmployeeService';
+import {UserService} from '@core/services/openApiWrappers/UserService';
 import {SessionService} from '@core/services/SessionService';
 import {ThemeMode, ThemeService} from '@core/services/ThemeService';
-import {OrganisationService} from '@core/services/OrganisationService';
+import {OrganisationService} from '@core/services/openApiWrappers/OrganisationService';
 import {LOGIN_PATH} from '@core/guards/auth.guard';
 import {PRIMARY_NAV, SECONDARY_NAV} from './nav-items';
 
@@ -50,15 +50,16 @@ const THEME_OPTIONS: readonly { mode: ThemeMode, label: string, icon: string }[]
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './app-shell.component.html',
   styleUrl: './app-shell.component.scss',
+  standalone: true
 })
-export class AppShellComponent implements OnInit {
-  private readonly employees = inject(EmployeeService);
+export class AppShellComponent {
+  private readonly users = inject(UserService);
   private readonly session = inject(SessionService);
   private readonly router = inject(Router);
   protected readonly theme = inject(ThemeService);
   private readonly organisations = inject(OrganisationService);
-  protected readonly organisation = this.organisations.organisation;
-  protected readonly organisationInitials = this.organisations.initials;
+  protected readonly organisationName = this.organisations.name;
+  protected readonly organisationIcon = this.organisations.logoIcon;
 
   protected readonly primaryNav = PRIMARY_NAV;
   protected readonly secondaryNav = SECONDARY_NAV;
@@ -72,16 +73,12 @@ export class AppShellComponent implements OnInit {
     {initialValue: 'drawer' as ShellLayout}
   );
 
-  protected readonly employee = toSignal(this.employees.employee$, {initialValue: null});
+  protected readonly user = this.users.user;
   protected readonly roleLabel = computed(() => {
-    const role = this.employee()?.role;
+    const role = this.user()?.role;
     return role ? ROLE_LABELS[role] ?? role : '';
   });
-  protected readonly initials = computed(() => (this.employee()?.username ?? '?').slice(0, 2).toUpperCase());
-
-  ngOnInit(): void {
-    this.employees.getAppUser().subscribe();
-  }
+  protected readonly initials = computed(() => (this.user()?.username ?? '?').slice(0, 2).toUpperCase());
 
   protected logout(): void {
     this.session.clear();

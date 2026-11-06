@@ -1,10 +1,10 @@
 import {ChangeDetectionStrategy, Component, computed, inject} from '@angular/core';
 import {Router} from '@angular/router';
-import {rxResource, toSignal} from '@angular/core/rxjs-interop';
+import {rxResource} from '@angular/core/rxjs-interop';
 import {MatDialog} from '@angular/material/dialog';
 import {MatButton, MatIconButton} from '@angular/material/button';
 import {MatIcon} from '@angular/material/icon';
-import {EmployeeService} from '@core/services/openApiWrappers/EmployeeService';
+import {UserService} from '@core/services/openApiWrappers/UserService';
 import {SessionService} from '@core/services/SessionService';
 import {PopupConfirmationService} from '@core/services/PopupConfirmationService';
 import {NotificationService} from '@core/services/NotificationService';
@@ -32,7 +32,7 @@ export class SettingsStaffComponent {
   private readonly confirmation = inject(PopupConfirmationService);
   private readonly notification = inject(NotificationService);
 
-  protected readonly me = toSignal(inject(EmployeeService).employee$, {initialValue: null});
+  protected readonly me = inject(UserService).user;
   protected readonly myRole = computed(() => this.roleLabel(this.me()?.role));
 
   private readonly invitationsResource = rxResource({defaultValue: [] as Invitation[], stream: () => this.staff.invitations()});

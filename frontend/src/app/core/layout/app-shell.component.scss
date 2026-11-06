@@ -55,7 +55,7 @@
   }
 }
 
-.camping-initials {
+.camping-logo {
   width: 40px;
   height: 40px;
   flex: none;
@@ -64,8 +64,6 @@
   border-radius: var(--radius-md);
   background: var(--mat-sys-primary-container);
   color: var(--mat-sys-on-primary-container);
-  font: var(--mat-sys-title-medium);
-  font-weight: 700;
 }
 
 .camping-name {
