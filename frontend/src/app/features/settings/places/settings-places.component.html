@@ -1,40 +1,50 @@
-<section class="card" aria-labelledby="types-title">
-  <header>
-    <div>
-      <h2 id="types-title">Rodzaje parcel i ceny</h2>
-      <p class="lead">Cena rodzaju obowiązuje dla wszystkich jego parcel, chyba że parcela ma własną cenę.</p>
-    </div>
-    <button mat-flat-button type="button" class="tonal" (click)="addType()">
-      <mat-icon>add</mat-icon>
-      Dodaj rodzaj
-    </button>
-  </header>
+<section class="types" aria-labelledby="types-title">
+  <app-data-table
+    [columns]="typeColumns"
+    [rows]="typeRows()"
+    [total]="typeTotal()"
+    [pageIndex]="typePageIndex()"
+    [pageSize]="typePageSize()"
+    [sort]="typeSort()"
+    [loading]="typesLoading()"
+    [rowLabel]="typeRowLabel"
+    (sortChange)="changeTypeSort($event)"
+    (pageChange)="changeTypePage($event)"
+    (rowClick)="editType($event.type)">
 
-  <div class="types">
-    @for (card of typeCards(); track card.type.id) {
-      <div class="type">
-        <div class="type-head">
-          <span class="type-name">{{ card.type.typeName }}</span>
-          <button mat-icon-button type="button" (click)="editType(card.type)" [attr.aria-label]="'Zmień rodzaj ' + card.type.typeName">
-            <mat-icon>edit</mat-icon>
-          </button>
-          <span [matTooltip]="card.places ? 'Najpierw przenieś parcele do innego rodzaju.' : ''">
-            <button mat-icon-button type="button" class="danger" [disabled]="card.places > 0"
-                    (click)="deleteType(card)" [attr.aria-label]="'Usuń rodzaj ' + card.type.typeName">
-              <mat-icon>delete</mat-icon>
-            </button>
-          </span>
-        </div>
-        <span class="type-price">{{ card.price }} <span class="per-night">za noc</span></span>
-        <span class="type-count">{{ card.placesLabel }}</span>
+    <header tableToolbar class="places-toolbar">
+      <div>
+        <h2 id="types-title">Rodzaje parcel i ceny</h2>
+        <p class="lead">Cena rodzaju obowiązuje dla wszystkich jego parcel, chyba że parcela ma własną cenę.</p>
       </div>
-    } @empty {
-      @if (!typesLoading()) {
-        <app-empty-state icon="grid_view" title="Nie ma jeszcze rodzajów parcel."
-                         message="Dodaj pierwszy rodzaj, np. „Kamper, prąd” z ceną za noc." />
-      }
-    }
-  </div>
+      <button mat-flat-button type="button" class="tonal" (click)="addType()">
+        <mat-icon>add</mat-icon>
+        Dodaj rodzaj
+      </button>
+    </header>
+
+    <ng-template appCell="name" let-row>
+      <strong>{{ row.name }}</strong>
+    </ng-template>
+
+    <ng-template appCell="actions" let-row>
+      <span class="actions">
+        <button mat-icon-button type="button" (click)="editType(row.type); $event.stopPropagation()"
+                [attr.aria-label]="'Zmień rodzaj ' + row.name">
+          <mat-icon>edit</mat-icon>
+        </button>
+        <span [matTooltip]="row.places ? 'Najpierw przenieś parcele do innego rodzaju.' : ''">
+          <button mat-icon-button type="button" class="danger" [disabled]="row.places > 0"
+                  (click)="deleteType(row); $event.stopPropagation()" [attr.aria-label]="'Usuń rodzaj ' + row.name">
+            <mat-icon>delete</mat-icon>
+          </button>
+        </span>
+      </span>
+    </ng-template>
+
+    <app-empty-state tableEmpty icon="grid_view" title="Nie ma jeszcze rodzajów parcel."
+                     message="Dodaj pierwszy rodzaj, np. „Kamper, prąd” z ceną za noc." />
+  </app-data-table>
 </section>
 
 <section class="places" aria-labelledby="places-title">
