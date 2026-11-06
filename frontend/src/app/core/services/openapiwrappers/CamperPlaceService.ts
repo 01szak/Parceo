@@ -2,7 +2,7 @@ import {Injectable, ResourceRef, computed, inject} from '@angular/core';
 import {rxResource} from '@angular/core/rxjs-interop';
 import {Page} from '@core/models/Page';
 import { ResourceType } from "./service-facade.service";
-import {PagedCrudService} from '@core/services/openApiWrappers/PagedCrudService';
+import {PagedCrudService} from '@core/services/openapiwrappers/PagedCrudService';
 import {safePage} from './page-utils';
 import {
   CamperPlaceDto,

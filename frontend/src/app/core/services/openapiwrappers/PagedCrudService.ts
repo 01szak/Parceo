@@ -1,5 +1,5 @@
 import {computed, inject, Injectable, ResourceRef, signal} from '@angular/core';
-import {ApiResponse, ResourceType, ServiceFacade} from '@core/services/openApiWrappers/service-facade.service';
+import {ApiResponse, ResourceType, ServiceFacade} from '@core/services/openapiwrappers/service-facade.service';
 import {NotificationService} from '@core/services/NotificationService';
 import {CamperPlaceDto, CamperPlaceTypeDto, GuestDto, Pageable, ReservationDto, SearchRequest} from '../../../api';
 import {Page} from '@core/models/Page';

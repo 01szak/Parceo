@@ -2,7 +2,7 @@ import {ChangeDetectionStrategy, Component, inject} from '@angular/core';
 import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material/dialog';
 import {GuestDto} from '../../api/models/guest-dto';
 import {FormFactoryService} from '@shared/form/FormFactoryService';
-import {GuestService} from '@core/services/openApiWrappers/GuestService';
+import {GuestService} from '@core/services/openapiwrappers/GuestService';
 import {PopupConfirmationService} from '@core/services/PopupConfirmationService';
 import {PopupFormContainer} from './popup-form-container.component';
 import {GuestFieldsComponent} from './guest-fields.component';

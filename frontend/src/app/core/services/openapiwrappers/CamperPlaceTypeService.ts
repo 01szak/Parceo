@@ -1,5 +1,5 @@
 import {computed, Injectable, ResourceRef} from '@angular/core';
-import {PagedCrudService} from '@core/services/openApiWrappers/PagedCrudService';
+import {PagedCrudService} from '@core/services/openapiwrappers/PagedCrudService';
 import { ResourceType } from "./service-facade.service";
 import {rxResource} from '@angular/core/rxjs-interop';
 import {CamperPlaceTypeDto, findBy2, getTypes} from '../../../api';
