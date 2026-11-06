@@ -7,12 +7,12 @@ import { filter, map } from 'rxjs/operators';
 import { StrictHttpResponse } from '../../strict-http-response';
 import { RequestBuilder } from '../../request-builder';
 
-import { ReservationDto } from '../../models/reservation-dto';
+import { ResInitRequest } from '../../models/res-init-request';
 
 export interface CreateUnverifiedReservationAndSendAuthenticationEmail$Params {
   'X-org-id': any;
   'X-api-key': any;
-      body: ReservationDto
+      body: ResInitRequest
 }
 
 export function createUnverifiedReservationAndSendAuthenticationEmail(http: HttpClient, rootUrl: string, params: CreateUnverifiedReservationAndSendAuthenticationEmail$Params, context?: HttpContext): Observable<StrictHttpResponse<string>> {
