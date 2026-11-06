@@ -1,60 +1,45 @@
-import {ChangeDetectionStrategy, Component, effect, inject, untracked} from '@angular/core';
-import {FormControl, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
-import {MatFormField, MatLabel, MatError, MatHint} from '@angular/material/form-field';
-import {MatInput} from '@angular/material/input';
-import {MatButton} from '@angular/material/button';
-import {OrganisationService} from '@core/services/OrganisationService';
-import {MockNoticeComponent} from '@shared/ui/mock-notice/mock-notice.component';
+import {ChangeDetectionStrategy, Component, computed, inject} from '@angular/core';
+import {MatIcon} from '@angular/material/icon';
+import {MatProgressBar} from '@angular/material/progress-bar';
+import {OrganisationService} from '@core/services/openApiWrappers/OrganisationService';
 
-//Ustawienia › Kemping: data guests see in confirmations; kept by a MOCK until the backend has an endpoint
+interface CampingDetail {
+  label: string;
+  value: string;
+}
+
+//Ustawienia › Kemping: the campsite's details from GET /organisation, read-only until the backend can save them
 @Component({
   selector: 'app-settings-camping',
-  imports: [ReactiveFormsModule, MatFormField, MatLabel, MatError, MatHint, MatInput, MatButton, MockNoticeComponent],
+  imports: [MatIcon, MatProgressBar],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <app-mock-notice />
-
     <section class="card" aria-labelledby="camping-title">
       <div class="head">
-        <span class="logo" aria-hidden="true">{{ organisations.initials() }}</span>
+        <span class="logo" aria-hidden="true"><mat-icon>{{ organisations.logoIcon }}</mat-icon></span>
         <div>
           <h2 id="camping-title">Dane kempingu</h2>
-          <p class="lead">Nazwa pojawia się w menu aplikacji.</p>
+          <p class="lead">Nazwa pojawia się w menu aplikacji. Tych danych nie można jeszcze zmienić w aplikacji.</p>
         </div>
       </div>
 
-      <form [formGroup]="form" (ngSubmit)="save()" class="fields">
-        <mat-form-field class="wide">
-          <mat-label>Nazwa kempingu</mat-label>
-          <input matInput formControlName="name" required>
-          <mat-error>Podaj nazwę kempingu.</mat-error>
-        </mat-form-field>
-        <mat-form-field class="wide">
-          <mat-label>Adres</mat-label>
-          <input matInput formControlName="address" placeholder="ul. Sosnowa 4, 84-120 Władysławowo">
-        </mat-form-field>
-        <mat-form-field>
-          <mat-label>Telefon</mat-label>
-          <input matInput type="tel" formControlName="phone">
-        </mat-form-field>
-        <mat-form-field>
-          <mat-label>Email</mat-label>
-          <input matInput type="email" formControlName="email">
-          <mat-error>Podaj poprawny adres email.</mat-error>
-        </mat-form-field>
-        <mat-form-field>
-          <mat-label>Przyjazdy od godziny</mat-label>
-          <input matInput type="time" formControlName="checkinFrom" required>
-          <mat-hint>Pokazujemy ją gościom przy rezerwacji.</mat-hint>
-        </mat-form-field>
-        <mat-form-field>
-          <mat-label>Wyjazdy do godziny</mat-label>
-          <input matInput type="time" formControlName="checkoutUntil" required>
-        </mat-form-field>
-        <div class="actions wide">
-          <button mat-flat-button type="submit" [disabled]="form.pristine">Zapisz zmiany</button>
-        </div>
-      </form>
+      @if (organisations.loading()) {
+        <mat-progress-bar mode="indeterminate" aria-label="Wczytywanie danych kempingu"/>
+      } @else if (organisations.failed()) {
+        <p class="error" role="alert">
+          <mat-icon aria-hidden="true">cloud_off</mat-icon>
+          Nie udało się wczytać danych kempingu. Sprawdź połączenie z internetem i odśwież stronę.
+        </p>
+      } @else {
+        <dl class="details">
+          @for (detail of details(); track detail.label) {
+            <div class="detail">
+              <dt>{{ detail.label }}</dt>
+              <dd [class.empty]="!detail.value">{{ detail.value || 'Nie podano' }}</dd>
+            </div>
+          }
+        </dl>
+      }
     </section>
   `,
   styles: `
@@ -88,8 +73,12 @@ import {MockNoticeComponent} from '@shared/ui/mock-notice/mock-notice.component'
       border-radius: var(--radius-lg);
       background: var(--mat-sys-primary-container);
       color: var(--mat-sys-on-primary-container);
-      font: var(--mat-sys-headline-small);
-      font-weight: 700;
+
+      mat-icon {
+        width: 36px;
+        height: 36px;
+        font-size: 36px;
+      }
     }
 
     h2 {
@@ -104,49 +93,59 @@ import {MockNoticeComponent} from '@shared/ui/mock-notice/mock-notice.component'
       color: var(--mat-sys-on-surface-variant);
     }
 
-    .fields {
+    .details {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-      gap: var(--space-4);
+      gap: var(--space-4) var(--space-6);
+      margin: 0;
     }
 
-    .wide {
-      grid-column: 1 / -1;
-    }
-
-    .actions {
+    .detail {
       display: flex;
-      justify-content: flex-end;
+      flex-direction: column;
+      gap: var(--space-1);
+      min-width: 0;
+    }
+
+    dt {
+      font: var(--mat-sys-label-large);
+      color: var(--mat-sys-on-surface-variant);
+    }
+
+    dd {
+      margin: 0;
+      font: var(--mat-sys-body-large);
+      overflow-wrap: anywhere;
+
+      &.empty {
+        color: var(--mat-sys-on-surface-variant);
+      }
+    }
+
+    .error {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      margin: 0;
+      padding: var(--space-3) var(--space-4);
+      border-radius: var(--radius-md);
+      background: var(--mat-sys-error-container);
+      color: var(--mat-sys-on-error-container);
+      font: var(--mat-sys-body-large);
     }
   `,
+  standalone: true
 })
 export class SettingsCampingComponent {
   protected readonly organisations = inject(OrganisationService);
 
-  protected readonly form = new FormGroup({
-    name: new FormControl('', {nonNullable: true, validators: [Validators.required]}),
-    address: new FormControl('', {nonNullable: true}),
-    phone: new FormControl('', {nonNullable: true}),
-    email: new FormControl('', {nonNullable: true, validators: [Validators.email]}),
-    checkinFrom: new FormControl('', {nonNullable: true, validators: [Validators.required]}),
-    checkoutUntil: new FormControl('', {nonNullable: true, validators: [Validators.required]}),
+  protected readonly details = computed<CampingDetail[]>(() => {
+    const organisation = this.organisations.organisation();
+    return [
+      {label: 'Nazwa kempingu', value: organisation?.organisationName ?? ''},
+      {label: 'Adres', value: organisation?.address ?? ''},
+      {label: 'Telefon', value: organisation?.phoneNumber ?? ''},
+      {label: 'Email', value: organisation?.email ?? ''},
+    ];
   });
-
-  constructor() {
-    //fill the form when the data arrives, as long as nobody has started editing it
-    effect(() => {
-      const organisation = this.organisations.organisation();
-      untracked(() => {
-        if (this.form.pristine) this.form.reset(organisation);
-      });
-    });
-  }
-
-  protected save(): void {
-    if (this.form.invalid) {
-      this.form.markAllAsTouched();
-      return;
-    }
-    this.organisations.save(this.form.getRawValue()).subscribe(saved => this.form.reset(saved));
-  }
 }

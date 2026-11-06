@@ -3,10 +3,10 @@
   @if (layout() !== 'bar') {
     <nav class="side" aria-label="Menu główne">
       <app-parceo-logo class="logo" [showName]="layout() === 'drawer'" />
-      <a class="camping" routerLink="/ustawienia/kemping" [attr.aria-label]="'Kemping: ' + organisation().name">
-        <span class="camping-initials" aria-hidden="true">{{ organisationInitials() }}</span>
+      <a class="camping" routerLink="/ustawienia/kemping" [attr.aria-label]="'Kemping: ' + organisationName()">
+        <span class="camping-logo" aria-hidden="true"><mat-icon>{{ organisationIcon }}</mat-icon></span>
         @if (layout() === 'drawer') {
-          <span class="camping-name">{{ organisation().name }}</span>
+          <span class="camping-name">{{ organisationName() }}</span>
         }
       </a>
 
@@ -22,16 +22,16 @@
 
       <button type="button" class="nav-link account" [matMenuTriggerFor]="accountMenu" aria-label="Konto">
         <span class="avatar" aria-hidden="true">{{ initials() }}</span>
-        <span class="label">{{ employee()?.username ?? 'Konto' }}</span>
+        <span class="label">{{ user()?.username ?? 'Konto' }}</span>
       </button>
     </nav>
   }
 
   <main class="content">
     @if (layout() === 'bar') {
-      <a class="camping phone-camping" routerLink="/ustawienia/kemping" [attr.aria-label]="'Kemping: ' + organisation().name">
-        <span class="camping-initials" aria-hidden="true">{{ organisationInitials() }}</span>
-        <span class="camping-name">{{ organisation().name }}</span>
+      <a class="camping phone-camping" routerLink="/ustawienia/kemping" [attr.aria-label]="'Kemping: ' + organisationName()">
+        <span class="camping-logo" aria-hidden="true"><mat-icon>{{ organisationIcon }}</mat-icon></span>
+        <span class="camping-name">{{ organisationName() }}</span>
       </a>
     }
     <router-outlet />
@@ -58,10 +58,10 @@
 </ng-template>
 
 <mat-menu #accountMenu="matMenu" xPosition="after" yPosition="above">
-  @if (employee(); as emp) {
+  @if (user(); as currentUser) {
     <div class="account-info">
-      <strong>{{ emp.username }}</strong>
-      <span>{{ emp.email }}</span>
+      <strong>{{ currentUser.username }}</strong>
+      <span>{{ currentUser.email }}</span>
       <span>{{ roleLabel() }}</span>
     </div>
     <mat-divider />
