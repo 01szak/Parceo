@@ -179,6 +179,13 @@ html {
   @include mat.snack-bar-overrides((
     container-shape: 8px,
   ));
+
+  // the date picker does not outline today: it looked like a selected date
+  @include mat.datepicker-overrides((
+    calendar-date-today-outline-color: transparent,
+    calendar-date-today-disabled-state-outline-color: transparent,
+    calendar-date-today-selected-state-outline-color: transparent,
+  ));
 }
 
 // side sheet (SideSheetService): glued to the right edge, rounded only on the left
@@ -193,12 +200,6 @@ html {
   @include mat.dialog-overrides((
     container-shape: 0,
   ));
-}
-
-// nights taken by other reservations in the stay picker (DateRangeFieldComponent)
-.mat-calendar-body-cell.occupied-night .mat-calendar-body-cell-content {
-  color: var(--mat-sys-error);
-  text-decoration: line-through;
 }
 
 .mat-mdc-header-cell {

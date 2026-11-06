@@ -9,8 +9,7 @@ import {
   MatDatepickerToggle,
   MatDatepickerToggleIcon,
   MatEndDate,
-  MatStartDate,
-  MatCalendarCellClassFunction
+  MatStartDate
 } from '@angular/material/datepicker';
 import {MatError, MatFormField, MatHint, MatLabel, MatSuffix} from '@angular/material/form-field';
 import {MatButton} from '@angular/material/button';
@@ -33,7 +32,8 @@ const ISO = 'YYYY-MM-DD';
 
 /**
  * The stay as one field: arrival and departure picked in one calendar.
- * Shows the number of nights under the field and strikes through nights occupied by other guests.
+ * Shows the number of nights under the field. Occupied nights are not marked here (the calendar shows them);
+ * a stay overlapping another reservation is reported under the field.
  */
 @Component({
   selector: 'app-date-range-field',
@@ -71,7 +71,7 @@ const ISO = 'YYYY-MM-DD';
       <mat-datepicker-toggle matIconSuffix [for]="picker">
         <mat-icon matDatepickerToggleIcon>date_range</mat-icon>
       </mat-datepicker-toggle>
-      <mat-date-range-picker #picker [dateClass]="occupiedClass()">
+      <mat-date-range-picker #picker>
         <mat-date-range-picker-actions>
           <button mat-button matDateRangePickerCancel>Anuluj</button>
           <button mat-flat-button matDateRangePickerApply>Zastosuj</button>
@@ -108,8 +108,6 @@ const ISO = 'YYYY-MM-DD';
 export class DateRangeFieldComponent {
   public readonly group = input.required<StayRangeGroup>();
   public readonly label = input('Przyjazd i wyjazd');
-  //nights taken by other reservations, as returned by the occupancy endpoint
-  public readonly occupiedNights = input<readonly string[][]>([]);
 
   private readonly value = signal<{ start: Moment | null, end: Moment | null }>({start: null, end: null});
   private readonly status = signal({touched: false, errors: null as Record<string, unknown> | null});
@@ -117,11 +115,6 @@ export class DateRangeFieldComponent {
   protected readonly hint = computed(() => {
     const {start, end} = this.value();
     return start && end ? stayHint(start.format(ISO), end.format(ISO)) : '';
-  });
-
-  protected readonly occupiedClass = computed<MatCalendarCellClassFunction<Moment>>(() => {
-    const occupied = new Set(this.occupiedNights().flat());
-    return (date, view) => view === 'month' && occupied.has(date.format(ISO)) ? 'occupied-night' : '';
   });
 
   //errors of the two inputs, shown inside the field

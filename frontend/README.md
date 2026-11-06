@@ -255,7 +255,7 @@ All are standalone, `OnPush`, with `input()` / `output()`. They do not inject da
 | `CellDefDirective` | `ng-template[appCell]` | custom cell template for a column | `<ng-template appCell="status" let-row>` |
 | `FilterBarComponent` | `app-filter-bar` | „Pokaż” field (views + saved filters), „Dodaj filtr” (popover with groups), filter chips, „Zapisz filtr” | in: `views`, `savedViews`, `activeViewId`, `groups`, `filters`; out: `viewChange`, `filtersChange`, `saveFilter(name)`, `deleteSavedView` |
 | `SaveFilterDialogComponent` | (dialog) | asks for the filter name, with a summary | opened by `FilterBarComponent` |
-| `DateRangeFieldComponent` | `app-date-range-field` | arrival and departure in one field, hint „3 noce, od soboty do wtorku”, occupied nights crossed out | in: `group` (`StayRangeGroup`), `label`, `occupiedNights` |
+| `DateRangeFieldComponent` | `app-date-range-field` | arrival and departure in one field, hint „3 noce, od soboty do wtorku”, message when the stay overlaps another reservation (occupied nights and today are not marked in the picker) | in: `group` (`StayRangeGroup`), `label` |
 | `SideSheetComponent` | `app-side-sheet` | side sheet layout | in: `title`, `deletable`, `deleteLabel`; out: `deleteClicked`; slot `[sheetFooter]` |
 | `StatusChipComponent` | `app-status-chip` | reservation status as a word, an icon and a colour | in: `kind` (`arrive`, `stay`, `leave`, `ended`, `late`, `unpaid`) |
 | `PageHeaderComponent` | `app-page-header` | page title, description, actions (content projection) | in: `title`, `description` |
