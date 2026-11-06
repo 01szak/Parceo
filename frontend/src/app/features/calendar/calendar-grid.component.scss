@@ -37,7 +37,7 @@
   position: sticky;
   top: 0;
   z-index: 3;
-  height: 64px;
+  height: 48px;
   border-bottom: 1px solid var(--mat-sys-outline);
   background: var(--mat-sys-surface-container-low);
 }
@@ -107,7 +107,7 @@
 // ---------- rows ----------
 .row {
   position: relative;
-  height: 56px;
+  height: 48px;
   border-bottom: 1px solid var(--calendar-gridline);
 }
 
