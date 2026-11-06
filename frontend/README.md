@@ -138,6 +138,7 @@ Data needed in many places at once is kept by services in a single resource:
 - `CamperPlaceTypeService.page()`: all place types (the backend has no paged endpoint for them, so the facade wraps the list in a single page).
 - `EmployeeService.employee$`: the logged-in user (`GET /user`), fetched once by the app shell.
 - `OrganisationService.organisation()` and `.initials()`: campsite details (mock).
+- `TodayService.today()`: today's date (`YYYY-MM-DD`) as a signal that moves on at midnight and when the tab becomes visible again. Screens that count from today (Dziś, the calendar, the reservations table) read it instead of `todayIso()`, so a screen left open overnight shows the new day.
 - `DisplaySettingsService`: the logged-in user's display settings (mock): `calendarDays()` (how many days the calendar shows, 30 by default) and `calendarScrollDays()` (how many days the arrows scroll, 7 by default). While the settings load, the signals hold the defaults.
 
 ### Calendar: loading in blocks

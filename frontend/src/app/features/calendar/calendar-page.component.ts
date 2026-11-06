@@ -19,7 +19,7 @@ import {
   initialWindow,
   visibleMonthsTitle
 } from '@shared/domain/calendar-window';
-import {todayIso} from '@shared/domain/iso-date';
+import {TodayService} from '@core/services/TodayService';
 import {ReservationChipKind} from '@shared/domain/stay-status';
 import {StatusChipComponent} from '@shared/ui/status-chip/status-chip.component';
 import {EmptyStateComponent} from '@shared/ui/empty-state/empty-state.component';
@@ -61,7 +61,8 @@ export class CalendarPageComponent {
   private readonly loader = inject(CalendarReservationsLoader);
   private readonly grid = viewChild(CalendarGridComponent);
 
-  protected readonly today = todayIso();
+  //moves on at midnight: the highlighted day, the bar colours and "Dziś" follow it
+  protected readonly today = inject(TodayService).today;
   protected readonly legend = LEGEND;
   protected readonly allTypes = ALL_TYPES;
 
@@ -69,18 +70,19 @@ export class CalendarPageComponent {
   protected readonly visibleDays = this.settings.calendarDays;
   private readonly scrollDays = this.settings.calendarScrollDays;
 
-  private readonly window = signal<CalendarWindow>(initialWindow(this.today, this.visibleDays()));
+  private readonly window = signal<CalendarWindow>(initialWindow(this.today(), this.visibleDays()));
   private readonly visibleRange = signal<VisibleDays | null>(null);
   protected readonly typeFilter = signal<number | typeof ALL_TYPES>(ALL_TYPES);
 
-  protected readonly days = computed(() => calendarDays(this.window().from, this.window().days, this.today));
+  protected readonly days = computed(() => calendarDays(this.window().from, this.window().days, this.today()));
   protected readonly title = computed(() => {
     const range = this.visibleRange();
-    return range ? visibleMonthsTitle(range.first, range.last) : visibleMonthsTitle(this.today, this.today);
+    return range ? visibleMonthsTitle(range.first, range.last) : visibleMonthsTitle(this.today(), this.today());
   });
   protected readonly todayVisible = computed(() => {
     const range = this.visibleRange();
-    return !!range && this.today >= range.first && this.today <= range.last;
+    const today = this.today();
+    return !!range && today >= range.first && today <= range.last;
   });
 
   protected readonly typeOptions = computed(() => this.types.page().content as CamperPlaceTypeDto[]);
@@ -95,7 +97,7 @@ export class CalendarPageComponent {
     });
     return this.camperPlaces.camperPlaces()
       .filter(place => filter === ALL_TYPES || place.camperPlaceType?.id === filter)
-      .map(place => ({place, bars: calendarBars(byPlace.get(place.id!) ?? [], from, days, this.today)}));
+      .map(place => ({place, bars: calendarBars(byPlace.get(place.id!) ?? [], from, days, this.today())}));
   });
 
   protected readonly loading = computed(() =>
@@ -137,8 +139,8 @@ export class CalendarPageComponent {
   }
 
   protected goToToday(): void {
-    if (containsDay(this.window(), this.today)) {
-      this.grid()?.scrollToDay(this.today);
+    if (containsDay(this.window(), this.today())) {
+      this.grid()?.scrollToDay(this.today());
     } else {
       this.resetAroundToday();
     }
@@ -159,7 +161,7 @@ export class CalendarPageComponent {
 
   //far from today the loaded days do not contain it: load the days around today again and centre it
   private resetAroundToday(): void {
-    this.window.set(initialWindow(this.today, this.visibleDays()));
-    this.grid()?.centerAfterRender(this.today);
+    this.window.set(initialWindow(this.today(), this.visibleDays()));
+    this.grid()?.centerAfterRender(this.today());
   }
 }
