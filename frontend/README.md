@@ -29,7 +29,7 @@ The user interface is in Polish; labels quoted below (e.g. „Dziś”, „Opła
 |---|---|
 | `npm start` | dev server on `http://localhost:4200`; `/api/*` requests go through the proxy (`src/proxy.conf.json`) to `http://localhost:8080` |
 | `npx ng build --configuration development` | build without optimisations |
-| `npm run build` | production build; **needs internet access**, because Angular downloads and inlines the Google fonts (IBM Plex Sans, Material Symbols) |
+| `npm run build` | production build; **needs internet access**, because Angular downloads and inlines the Google fonts (Roboto, Material Symbols) |
 | `CHROME_BIN=/usr/bin/google-chrome npx ng test --watch=false --browsers=ChromeHeadless` | unit tests (Karma + Jasmine) |
 | `npm run generate-api` | regenerates the API client in `src/app/api` from `src/app/api-spec.json` (ng-openapi-gen) |
 
@@ -333,7 +333,7 @@ Pure functions with no Angular dependency. Every file has a `*.spec.ts` test. Da
 
 ## Theme, styles and device settings
 
-- **Material 3 theme** in `src/styles.scss`: `mat.theme()` with the palettes from `_theme-colors.scss`, the IBM Plex Sans font, and the exact colour roles through `mat.theme-overrides()` with `light-dark(light, dark)`.
+- **Material 3 theme** in `src/styles.scss`: `mat.theme()` with the palettes from `_theme-colors.scss`, the Roboto font, and the exact colour roles through `mat.theme-overrides()` with `light-dark(light, dark)`.
 - **Tokens** used by components:
   - `--mat-sys-*`: colours, typography, elevation levels from Material;
   - `--res-*`: reservation status colours (`--res-stay-container`, `--res-on-stay-container`, `--res-stay` etc.);
