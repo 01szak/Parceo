@@ -23,8 +23,9 @@ const TABS: readonly SettingsTab[] = [
   imports: [RouterOutlet, RouterLink, RouterLinkActive, MatTabNav, MatTabLink, MatTabNavPanel, MatIcon, PageHeaderComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <app-page-header title="Ustawienia" />
-    <nav mat-tab-nav-bar mat-stretch-tabs="false" mat-align-tabs="start" [tabPanel]="panel" aria-label="Kategorie ustawień">
+    <app-page-header title="Ustawienia"/>
+    <nav mat-tab-nav-bar mat-stretch-tabs="false" mat-align-tabs="start" [tabPanel]="panel"
+         aria-label="Kategorie ustawień">
       @for (tab of tabs; track tab.path) {
         <a mat-tab-link [routerLink]="tab.path" routerLinkActive #active="routerLinkActive" [active]="active.isActive">
           <mat-icon aria-hidden="true">{{ tab.icon }}</mat-icon>
@@ -33,7 +34,7 @@ const TABS: readonly SettingsTab[] = [
       }
     </nav>
     <mat-tab-nav-panel #panel>
-      <router-outlet />
+      <router-outlet/>
     </mat-tab-nav-panel>
   `,
   styles: `
@@ -53,6 +54,7 @@ const TABS: readonly SettingsTab[] = [
       padding-top: var(--space-4);
     }
   `,
+  standalone: true
 })
 export class SettingsPage {
   protected readonly tabs = TABS;

@@ -143,9 +143,41 @@ const TEXT_SIZES: readonly { size: TextSize, label: string }[] = [
       }
     }
 
-    .preview-light { background: #F6FAFD; .nav { background: #EAEEF1; } .lines span:first-child { background: #171C1F; } }
-    .preview-dark { background: #0F1417; .nav { background: #1B2023; } .lines span:first-child { background: #DEE3E6; } }
-    .preview-system { background: linear-gradient(90deg, #F6FAFD 50%, #0F1417 50%); .nav { background: #C0C8CC; } .lines span:first-child { background: #70787C; } }
+    .preview-light {
+      background: #F6FAFD;
+
+      .nav {
+        background: #EAEEF1;
+      }
+
+      .lines span:first-child {
+        background: #171C1F;
+      }
+    }
+
+    .preview-dark {
+      background: #0F1417;
+
+      .nav {
+        background: #1B2023;
+      }
+
+      .lines span:first-child {
+        background: #DEE3E6;
+      }
+    }
+
+    .preview-system {
+      background: linear-gradient(90deg, #F6FAFD 50%, #0F1417 50%);
+
+      .nav {
+        background: #C0C8CC;
+      }
+
+      .lines span:first-child {
+        background: #70787C;
+      }
+    }
 
     .sample {
       font-weight: 700;
@@ -154,10 +186,19 @@ const TEXT_SIZES: readonly { size: TextSize, label: string }[] = [
     }
 
     /* fixed px on purpose: the samples show the sizes regardless of the current one */
-    .sample-normal { font-size: 18px; }
-    .sample-large { font-size: 20px; }
-    .sample-xlarge { font-size: 22px; }
+    .sample-normal {
+      font-size: 18px;
+    }
+
+    .sample-large {
+      font-size: 20px;
+    }
+
+    .sample-xlarge {
+      font-size: 22px;
+    }
   `,
+  standalone: true
 })
 export class SettingsAppearanceComponent {
   protected readonly theme = inject(ThemeService);

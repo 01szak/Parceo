@@ -44,6 +44,7 @@ import {ChangeDetectionStrategy, Component, input} from '@angular/core';
       white-space: nowrap;
     }
   `,
+  standalone: true
 })
 export class ParceoLogoComponent {
   public readonly size = input(32);
