@@ -1,7 +1,7 @@
 import {ChangeDetectionStrategy, Component, computed, inject} from '@angular/core';
 import {MatIcon} from '@angular/material/icon';
 import {MatProgressBar} from '@angular/material/progress-bar';
-import {OrganisationService} from '@core/services/openApiWrappers/OrganisationService';
+import {OrganisationService} from '@core/services/openapiwrappers/OrganisationService';
 
 interface CampingDetail {
   label: string;

@@ -2,8 +2,8 @@ import {TestBed} from '@angular/core/testing';
 import {signal} from '@angular/core';
 import {Observable, Subject} from "rxjs";
 import {CalendarReservationsLoader} from './calendar-reservations-loader';
-import {ResourceType, ServiceFacade} from '@core/services/openApiWrappers/service-facade.service';
-import {DataVersionService} from '@core/services/openApiWrappers/data-version.service';
+import {ResourceType, ServiceFacade} from '@core/services/openapiwrappers/service-facade.service';
+import {DataVersionService} from '@core/services/openapiwrappers/data-version.service';
 import {CalendarWindow} from '@shared/domain/calendar-window';
 import {ReservationDto, SearchRequest} from '../../api';
 

@@ -8,10 +8,10 @@ import {MatIcon} from '@angular/material/icon';
 import {MatDivider} from '@angular/material/divider';
 import {MatMenu, MatMenuItem, MatMenuTrigger} from '@angular/material/menu';
 import {ParceoLogoComponent} from '@shared/ui/logo/parceo-logo.component';
-import {UserService} from '@core/services/openApiWrappers/UserService';
+import {UserService} from '@core/services/openapiwrappers/UserService';
 import {SessionService} from '@core/services/SessionService';
 import {ThemeMode, ThemeService} from '@core/services/ThemeService';
-import {OrganisationService} from '@core/services/openApiWrappers/OrganisationService';
+import {OrganisationService} from '@core/services/openapiwrappers/OrganisationService';
 import {LOGIN_PATH} from '@core/guards/auth.guard';
 import {PRIMARY_NAV, SECONDARY_NAV} from './nav-items';
 

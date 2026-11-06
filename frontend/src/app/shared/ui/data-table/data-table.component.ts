@@ -5,7 +5,7 @@ import {MatSort, MatSortHeader, Sort} from '@angular/material/sort';
 import {MatPaginator, PageEvent} from '@angular/material/paginator';
 import {MatProgressBar} from '@angular/material/progress-bar';
 import {CellContext, CellDefDirective} from './cell-def.directive';
-import {QuerySort} from '@core/services/openApiWrappers/paged-query';
+import {QuerySort} from '@core/services/openapiwrappers/paged-query';
 import {EmptyStateComponent} from '@shared/ui/empty-state/empty-state.component';
 
 export interface ColumnDef {

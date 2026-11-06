@@ -12,9 +12,9 @@ import {MatButtonToggle, MatButtonToggleGroup} from '@angular/material/button-to
 import {MatCheckbox} from '@angular/material/checkbox';
 import {MatButton} from '@angular/material/button';
 import {MatIcon} from '@angular/material/icon';
-import {ReservationService} from '@core/services/openApiWrappers/ReservationService';
-import {CamperPlaceService} from '@core/services/openApiWrappers/CamperPlaceService';
-import {GuestService} from '@core/services/openApiWrappers/GuestService';
+import {ReservationService} from '@core/services/openapiwrappers/ReservationService';
+import {CamperPlaceService} from '@core/services/openapiwrappers/CamperPlaceService';
+import {GuestService} from '@core/services/openapiwrappers/GuestService';
 import {PopupConfirmationService} from '@core/services/PopupConfirmationService';
 import {NotificationService} from '@core/services/NotificationService';
 import {FormFactoryService, GuestMode} from '@shared/form/FormFactoryService';

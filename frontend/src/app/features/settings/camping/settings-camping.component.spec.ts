@@ -1,6 +1,6 @@
 import {signal} from '@angular/core';
 import {TestBed} from '@angular/core/testing';
-import {OrganisationService} from '@core/services/openApiWrappers/OrganisationService';
+import {OrganisationService} from '@core/services/openapiwrappers/OrganisationService';
 import {OrganisationDto} from '../../../api';
 import {SettingsCampingComponent} from './settings-camping.component';
 

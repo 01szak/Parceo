@@ -2,7 +2,7 @@ import {ChangeDetectionStrategy, Component, computed, inject} from '@angular/cor
 import {Router} from '@angular/router';
 import {MatButton} from '@angular/material/button';
 import {MatIcon} from '@angular/material/icon';
-import {UserService} from '@core/services/openApiWrappers/UserService';
+import {UserService} from '@core/services/openapiwrappers/UserService';
 import {SessionService} from '@core/services/SessionService';
 import {LOGIN_PATH} from '@core/guards/auth.guard';
 

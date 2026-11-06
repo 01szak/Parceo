@@ -1,6 +1,6 @@
 import {Injectable} from '@angular/core';
-import {ResourceType} from '@core/services/openApiWrappers/service-facade.service';
-import {PagedCrudService} from '@core/services/openApiWrappers/PagedCrudService';
+import {ResourceType} from '@core/services/openapiwrappers/service-facade.service';
+import {PagedCrudService} from '@core/services/openapiwrappers/PagedCrudService';
 
 
 
