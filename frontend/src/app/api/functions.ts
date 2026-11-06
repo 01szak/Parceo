@@ -55,3 +55,5 @@ export type { GetRevenue$Params as GetRevenue$Params } from './fn/statistics-con
 export { getRevenue as getRevenue } from './fn/statistics-controller/get-revenue';
 export type { GetUserPerCountry$Params as GetUserPerCountry$Params } from './fn/statistics-controller/get-user-per-country';
 export { getUserPerCountry as getUserPerCountry } from './fn/statistics-controller/get-user-per-country';
+export type { GetOrganisation$Params as GetOrganisation$Params } from './fn/organisation-controller/get-organisation';
+export { getOrganisation as getOrganisation } from './fn/organisation-controller/get-organisation';

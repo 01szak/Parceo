@@ -6,17 +6,20 @@ export { provideApiConfiguration } from './api-configuration';
 export { RequestBuilder } from './request-builder';
 export type { StrictHttpResponse } from './strict-http-response';
 export { Api } from './api';
+
 export type { CamperPlaceDto } from './models/camper-place-dto';
 export type { CamperPlaceTypeDto } from './models/camper-place-type-dto';
 export type { CountryDistribution } from './models/country-distribution';
 export type { GuestDto } from './models/guest-dto';
 export type { LoginRequest } from './models/login-request';
+export type { OrganisationDto } from './models/organisation-dto';
 export type { Pageable } from './models/pageable';
 export type { Pageablenull } from './models/pageablenull';
 export type { PageCamperPlaceDto } from './models/page-camper-place-dto';
 export type { PageGuestDto } from './models/page-guest-dto';
 export type { PageReservationDto } from './models/page-reservation-dto';
 export type { ReservationDto } from './models/reservation-dto';
+export type { ResInitRequest } from './models/res-init-request';
 export type { Revenue } from './models/revenue';
 export type { SearchCriteria } from './models/search-criteria';
 export type { SearchRequest } from './models/search-request';
@@ -77,3 +80,5 @@ export type { GetRevenue$Params as GetRevenue$Params } from './fn/statistics-con
 export { getRevenue as getRevenue } from './fn/statistics-controller/get-revenue';
 export type { GetUserPerCountry$Params as GetUserPerCountry$Params } from './fn/statistics-controller/get-user-per-country';
 export { getUserPerCountry as getUserPerCountry } from './fn/statistics-controller/get-user-per-country';
+export type { GetOrganisation$Params as GetOrganisation$Params } from './fn/organisation-controller/get-organisation';
+export { getOrganisation as getOrganisation } from './fn/organisation-controller/get-organisation';
