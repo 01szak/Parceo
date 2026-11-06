@@ -51,7 +51,7 @@ src/
     │   ├── interceptors/    JWT token, Blob → JSON response conversion
     │   ├── layout/          app shell (menu, account) and menu items
     │   ├── mocks/           MOCK: data the backend does not provide yet
-    │   ├── models/          Page, Employee
+    │   ├── models/          Page
     │   └── services/        app services and the API access layer (openApiWrappers/)
     ├── features/            screens (container components): put data from services together
     │   ├── auth/            login
@@ -73,26 +73,30 @@ The split: **`features/` knows where the data comes from** (injects services, bu
 
 ## Data flow: from a screen to the backend
 
+```mermaid
+sequenceDiagram
+    autonumber
+    participant S as Screen component (features)
+    participant Q as createPagedQuery / PagedCrudService
+    participant F as ServiceFacade
+    participant A as Generated API (src/app/api)
+    participant I as AuthInterceptor, BlobJsonInterceptor
+    participant B as Spring backend
+    S->>Q: set criteria, page or sort (signals)
+    Q->>F: findBy(type, pageable, searchRequest)
+    F->>A: generated function for the ResourceType
+    A->>I: HttpClient request (fetch)
+    I->>B: /api/... with the Bearer token, through the proxy
+    B-->>Q: Page of DTOs
+    Q-->>S: query.page(), loading(), failed()
+    S->>Q: service.update(dto)
+    Q->>F: update(type, dto)
+    F->>B: PATCH through the same layers
+    B-->>Q: success message
+    Q->>Q: DataVersionService.bump(type), every query of that type reloads
 ```
- Screen component (features/…)
-   │  reads signals: query.page(), query.loading(), service.camperPlaces()
-   │  calls: service.create(dto).subscribe(), forms.openReservationFormPopup()
-   ▼
- Services (core/services/…)
-   ├─ createPagedQuery(type)      a list with its own state (criteria, page, sorting)
-   ├─ ReservationService, GuestService, CamperPlaceService, CamperPlaceTypeService
-   │    (extend AbstractService: create / update / delete + notification)
-   └─ OrganisationService, StaffApi, ReservationNotesApi, DisplaySettingsService   ← MOCK (core/mocks)
-   ▼
- ServiceFacade (openApiWrappers/service-facade.service.ts)
-   │  one switch on ResourceType: which generated API function to call
-   ▼
- Api + functions from src/app/api (ng-openapi-gen)  →  HttpClient (fetch)
-   ▼
- Interceptors: AuthInterceptor (Bearer token), BlobJsonInterceptor (Blob → JSON)
-   ▼
- /api/…  →  proxy  →  Spring backend (localhost:8080)
-```
+
+Services backed by mocks (`StaffApi`, `ReservationNotesApi`, `DisplaySettingsService`) stop at the mock in `core/mocks` instead of calling `ServiceFacade`; see [Mocks](#mocks).
 
 Screens never call `HttpClient` or the functions from `src/app/api` directly. The one exception is login (`LoginComponent` calls `login` through `Api`).
 
@@ -136,20 +140,33 @@ Data needed in many places at once is kept by services in a single resource:
 
 - `CamperPlaceService.camperPlaces()`: all camper places sorted by number (calendar, reports, forms, settings). Refreshes after a change to places **and** place types, because changing a type's price can overwrite place prices.
 - `CamperPlaceTypeService.page()`: all place types (the backend has no paged endpoint for them, so the facade wraps the list in a single page).
-- `EmployeeService.employee$`: the logged-in user (`GET /user`), fetched once by the app shell.
-- `OrganisationService.organisation()` and `.initials()`: campsite details (mock).
+- `UserService.user()`: the logged-in user (`GET /user`, `UserDto`).
+- Both `UserService` and `OrganisationService` depend on `SessionService.token()`: they load after login, clear after logout and load again when another user logs in in the same tab.
+- `OrganisationService.organisation()` and `.name()`: the logged-in user's campsite (`GET /organisation`: name, address, phone, email). Read-only for now; the menu shows „Mój kemping” until the data arrives. `.logoIcon` is the Material Symbols icon used as the campsite's logo (`camping`); a campsite's own SVG can replace it later.
 - `DisplaySettingsService`: the logged-in user's display settings (mock): `calendarDays()` (how many days the calendar shows, 30 by default) and `calendarScrollDays()` (how many days the arrows scroll, 7 by default). While the settings load, the signals hold the defaults.
 
 ### Calendar: loading in blocks
 
 The calendar scrolls without end, so it does not fetch all reservations at once:
 
-```
- CalendarPageComponent                 window of days (CalendarWindow {from, days}) in a signal
-   ├─ CalendarGridComponent            near an edge emits edgeReached('start' | 'end')
-   │     └─ the page adds a block of days (extendBackward / extendForward from calendar-window.ts)
-   └─ CalendarReservationsLoader       one findBy(RESERVATION) request per block
-                                       with checkin < block end AND checkout > block start
+```mermaid
+sequenceDiagram
+    autonumber
+    actor U as User
+    participant G as CalendarGridComponent
+    participant P as CalendarPageComponent
+    participant L as CalendarReservationsLoader
+    participant B as Backend
+    U->>G: scrolls close to the first or last day
+    G->>P: edgeReached('start' or 'end')
+    P->>P: window = extendBackward or extendForward (calendar-window.ts)
+    P->>L: the window signal changes
+    L->>L: forget blocks outside the window
+    L->>B: POST /reservation/findBy for each missing block
+    B-->>L: reservations overlapping the block
+    L-->>P: reservations() merged by id
+    P->>G: new days and rows
+    G->>G: move scrollLeft by the added days, so the view stays
 ```
 
 - A block has as many days as `calendarDays()`. The window starts with 3 blocks and today in the middle. It holds at most 5 blocks (`MAX_BLOCKS`); scrolling further drops a block on the other side.
@@ -175,18 +192,18 @@ The reservation form wraps them in its own `rxResource`s, so free places, occupi
 In Angular 22, `resource.value()` **throws** when the resource is in the error state, and an exception in a template stops rendering of the whole app. That is why lists are always read through:
 
 - `query.page()` (queries from `createPagedQuery`),
-- `service.page()` (`AbstractService` resources),
+- `service.page()` (`PagedCrudService` resources),
 - `safePage(resource)` / `emptyPage()` from `page-utils.ts` (custom resources).
 
 All of them return an empty page on error, and the error message is shown based on `failed()` / `status() === 'error'`.
 
-### 5. Older mechanism: `pageable` / `searchRequest` in `AbstractService`
+### 5. Older mechanism: `pageable` / `searchRequest` in `PagedCrudService`
 
-`AbstractService` still has the shared `pageable` and `searchRequest` signals and a `pageResource` built from them. Only the guest suggestions in the reservation form (`GuestService`) and the place type list (`CamperPlaceTypeService`) still use them. New lists are built with `createPagedQuery`: shared signals in an app-wide service made two lists on one screen overwrite each other's queries.
+`PagedCrudService` still has the shared `pageable` and `searchRequest` signals and a `pageResource` built from them. Only the guest suggestions in the reservation form (`GuestService`) and the place type list (`CamperPlaceTypeService`) still use them. New lists are built with `createPagedQuery`: shared signals in an app-wide service made two lists on one screen overwrite each other's queries.
 
 ## Saving data and refreshing lists
 
-Writes go through the `AbstractService` methods (inherited by `ReservationService`, `GuestService`, `CamperPlaceService`, `CamperPlaceTypeService`):
+Writes go through the `PagedCrudService` methods (inherited by `ReservationService`, `GuestService`, `CamperPlaceService`, `CamperPlaceTypeService`):
 
 ```ts
 this.reservations.update({...reservation, paid: true}).subscribe();
@@ -222,15 +239,42 @@ The reservations table criteria are built by the pure function `reservationCrite
 
 ## Forms and the side sheet
 
+```mermaid
+classDiagram
+    direction LR
+    class PopupFormService {
+        +openReservationFormPopup(data)
+        +openGuestFormPopup(data)
+        +openCamperPlaceFormPopup(data)
+        +openCamperPlaceTypeFormPopup(data)
+    }
+    class SideSheetService {
+        +open(component, data)
+    }
+    class ReservationFormComponent {
+        data from MAT_DIALOG_DATA
+    }
+    class FormFactoryService {
+        +buildReservationForm()
+        +buildGuestForm()
+        +buildStayRange()
+    }
+    class PopupFormContainer {
+        <<app-popup-form-container>>
+        title, delete, Anuluj, main action, footer summary
+    }
+    class SideSheetComponent {
+        <<app-side-sheet>>
+        header, scrolling content, fixed footer
+    }
+    PopupFormService --> SideSheetService : opens every form through
+    SideSheetService ..> ReservationFormComponent : MatDialog pinned to the right, full screen on a phone
+    ReservationFormComponent --> FormFactoryService : builds its form group
+    ReservationFormComponent *-- PopupFormContainer
+    PopupFormContainer *-- SideSheetComponent
 ```
- screen: forms.openReservationFormPopup({reservation})      PopupFormService (one entry point for all forms)
-   ▼
- SideSheetService.open(Component, data)                     MatDialog pinned to the right edge; full screen on a phone
-   ▼
- ReservationFormComponent / GuestFormComponent / …          data from MAT_DIALOG_DATA, form from FormFactoryService
-   └─ <app-popup-form-container>                            title, delete (when editing), „Anuluj”, main action, summary in the footer
-        └─ <app-side-sheet>                                 header, scrolling content, fixed footer
-```
+
+`GuestFormComponent`, `CamperPlaceFormComponent` and `CamperPlaceTypeFormComponent` are built the same way as `ReservationFormComponent`.
 
 - **`FormFactoryService`** builds form groups (`buildReservationForm`, `buildGuestForm`, `buildStayRange`, `buildCamperPlaceForm`, `buildCamperPlaceTypeForm`) with validators. A required field = the `required` validator + the `required` attribute on the input (Material adds the asterisk to the label).
 - **Reservation form** (`shared/form/reservation-form.component.*`):
@@ -363,12 +407,11 @@ Data the backend does not provide yet is mocked in the frontend.
 
 | Abstract API | Mock | Used by | Remove when the backend has |
 |---|---|---|---|
-| `OrganisationApi` | `OrganisationMockApi` | `OrganisationService` (Settings › Kemping, campsite name in the menu) | GET / PATCH for the organisation (the `Organisation` entity already exists) |
 | `StaffApi` | `StaffMockApi` | `SettingsStaffComponent` (invitations) | a list of the campsite's users, invitations and registration (`/auth/register` is commented out today) |
 | `ReservationNotesApi` | `ReservationNotesMockApi` | `ReservationFormComponent` (Uwagi) | a `notes` field in `Reservation` / `ReservationDTO` |
 | `DisplaySettingsApi` | `DisplaySettingsMockApi` | `DisplaySettingsService` (days in the calendar, arrow step) | GET / PUT for the logged-in user's display settings, stored per user |
 
-- Registration: `core/mocks/provide-mocks.ts`, wired into `app.config.ts`. **Moving to the backend** means writing a class that implements the given API (e.g. `OrganisationHttpApi extends OrganisationApi`, calling the endpoint through `Api`) and swapping it in `provideMocks()`. Screens do not change.
+- Registration: `core/mocks/provide-mocks.ts`, wired into `app.config.ts`. **Moving to the backend** means writing a class that implements the given API (e.g. `StaffHttpApi extends StaffApi`, calling the endpoint through `Api`), or calling the generated function directly from the service and deleting the mock, as `OrganisationService` does with `getOrganisation`, and swapping it in `provideMocks()`. Screens do not change.
 - Mock data is saved in `localStorage` with the `parceo.mock.` prefix (`mock-storage.ts`).
 - Screens based on a mock show `<app-mock-notice>`.
 
@@ -404,10 +447,10 @@ Component tests check behaviour (what the user sees, which events the component 
 1. A group in `FormFactoryService`.
 2. A component with `<app-popup-form-container [formTitle] [proceedAction] [deleteAction] [isUpdate]>` and data from `MAT_DIALOG_DATA`.
 3. An opening method in `PopupFormService` (through `SideSheetService.open`).
-4. Saving through a service method from `AbstractService`; deleting through `PopupConfirmationService` with `tone: 'danger'`.
+4. Saving through a service method from `PagedCrudService`; deleting through `PopupConfirmationService` with `tone: 'danger'`.
 
 **A new resource type in the backend:**
 
 1. `npm run generate-api` after updating `api-spec.json`.
 2. A value in `ResourceType` and branches in `ServiceFacade` (`findBy`, `create`, `update`, `delete`).
-3. A service that `extends AbstractService` with `getType()`.
+3. A service that `extends PagedCrudService` with `getType()`. A resource that is only read as a single object (like `GET /user` or `GET /organisation`) gets a plain service with one `rxResource` instead (see `UserService`, `OrganisationService`).
