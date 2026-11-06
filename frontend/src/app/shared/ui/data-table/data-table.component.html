@@ -40,8 +40,8 @@
         [class.clickable]="clickableRows()"
         [attr.tabindex]="clickableRows() ? 0 : null"
         [attr.aria-label]="clickableRows() ? rowLabel()(row) : null"
-        (click)="onRowClick(row)"
-        (keydown.enter)="onRowClick(row)"></tr>
+        (click)="onRowClick(row, $event)"
+        (keydown.enter)="onRowClick(row, $event)"></tr>
   </table>
 
   @if (!loading() && rows().length === 0) {

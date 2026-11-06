@@ -61,7 +61,6 @@
 
   <ng-template appCell="actions" let-row>
     <button mat-icon-button type="button" [matMenuTriggerFor]="rowMenu" [matMenuTriggerData]="{row}"
-            (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()"
             [attr.aria-label]="'Więcej opcji: ' + row.guest">
       <mat-icon>more_vert</mat-icon>
     </button>
