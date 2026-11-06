@@ -38,6 +38,18 @@ describe('DataTableComponent', () => {
     expect(sorts).toEqual([{field: 'guest.lastname', direction: 'ASC'}]);
   });
 
+  it('does not open the row for a click or Enter on a button inside it', () => {
+    const clicked: Row[] = [];
+    fixture.componentInstance.rowClick.subscribe(r => clicked.push(r));
+    const button = document.createElement('button');
+    element.querySelector('tr.mat-mdc-row td')!.appendChild(button);
+
+    button.click();
+    button.dispatchEvent(new KeyboardEvent('keydown', {key: 'Enter', bubbles: true}));
+
+    expect(clicked).toEqual([]);
+  });
+
   it('emits the clicked row', () => {
     const clicked: Row[] = [];
     fixture.componentInstance.rowClick.subscribe(r => clicked.push(r));
