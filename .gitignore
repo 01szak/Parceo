@@ -1,5 +1,9 @@
 # Parceo: one ignore file for the whole repository (backend/ and frontend/)
 
+### Local notes ###
+# the redesign plan and work log, kept only on this machine
+/PLAN.md
+
 ### Backend (Spring Boot, Maven) ###
 backend/target/
 backend/build/
