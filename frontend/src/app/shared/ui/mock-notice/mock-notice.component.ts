@@ -8,7 +8,9 @@ import {MatIcon} from '@angular/material/icon';
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <mat-icon aria-hidden="true">info</mat-icon>
-    <p><ng-content>Te dane są na razie zapisywane tylko w tej przeglądarce. Inni pracownicy ich nie zobaczą.</ng-content></p>
+    <p>
+      <ng-content>Te dane są na razie zapisywane tylko w tej przeglądarce. Inni pracownicy ich nie zobaczą.</ng-content>
+    </p>
   `,
   styles: `
     :host {
@@ -30,6 +32,7 @@ import {MatIcon} from '@angular/material/icon';
       font: var(--mat-sys-body-large);
     }
   `,
+  standalone: true
 })
 export class MockNoticeComponent {
 }
