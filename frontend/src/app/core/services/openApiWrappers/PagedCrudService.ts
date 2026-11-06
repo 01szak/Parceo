@@ -11,8 +11,12 @@ import {DataVersionService} from './data-version.service';
 export const DEFAULT_PAGEABLE: Pageable = {page: 0, size: 10, sort: []};
 export const DEFAULT_SEARCH_REQUEST: SearchRequest = {searchCriteria: []};
 
+/**
+ * Base for services of a backend resource read as a paged list (findBy) and changed with create / update / delete,
+ * all through ServiceFacade. Services that only read a single object (UserService, OrganisationService) do not extend it.
+ */
 @Injectable({providedIn: "root"})
-export abstract class AbstractService {
+export abstract class PagedCrudService {
   protected readonly serviceFacade = inject(ServiceFacade);
   protected readonly notification = inject(NotificationService);
   protected readonly versions = inject(DataVersionService);

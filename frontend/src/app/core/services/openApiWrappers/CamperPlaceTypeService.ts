@@ -1,12 +1,12 @@
 import {computed, Injectable, ResourceRef} from '@angular/core';
-import {AbstractService} from '@core/services/openApiWrappers/AbstractService';
+import {PagedCrudService} from '@core/services/openApiWrappers/PagedCrudService';
 import { ResourceType } from "./service-facade.service";
 import {rxResource} from '@angular/core/rxjs-interop';
 import {CamperPlaceTypeDto, findBy2, getTypes} from '../../../api';
 import {from} from 'rxjs';
 
 @Injectable({providedIn: "root"})
-export class CamperPlaceTypeService extends AbstractService {
+export class CamperPlaceTypeService extends PagedCrudService {
 
   public override getType(): ResourceType {
         return ResourceType.CAMPER_PLACE_TYPE;
