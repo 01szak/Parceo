@@ -14,7 +14,9 @@ import {SideSheetComponent} from '@shared/ui/side-sheet/side-sheet.component';
       <div sheetFooter class="footer">
         <div class="summary"><ng-content select="[formSummary]" /></div>
         <button mat-button type="button" mat-dialog-close>Anuluj</button>
-        <button mat-flat-button type="button" [disabled]="saveDisabled()" (click)="proceedAction()()">{{ saveLabel() }}</button>
+        <button mat-flat-button type="button" [disabled]="saveDisabled() || saving()" (click)="proceedAction()()">
+          {{ saving() ? 'Zapisywanie…' : saveLabel() }}
+        </button>
       </div>
     </app-side-sheet>
   `,
@@ -44,6 +46,8 @@ export class PopupFormContainer {
   public readonly isUpdate = input(false);
   public readonly saveLabel = input('Zapisz');
   public readonly saveDisabled = input(false);
+  //a save request is running: the button is disabled so a second click cannot send it again
+  public readonly saving = input(false);
 
   protected readonly canDelete = computed(() => this.isUpdate() && !!this.deleteAction());
 }

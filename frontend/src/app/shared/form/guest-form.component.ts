@@ -1,4 +1,5 @@
-import {ChangeDetectionStrategy, Component, inject} from '@angular/core';
+import {ChangeDetectionStrategy, Component, inject, signal} from '@angular/core';
+import {finalize} from 'rxjs';
 import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material/dialog';
 import {GuestDto} from '../../api/models/guest-dto';
 import {FormFactoryService} from '@shared/form/FormFactoryService';
@@ -20,6 +21,7 @@ export type GuestFormData = { guest?: GuestDto };
       [isUpdate]="isUpdate"
       [deleteAction]="confirmDelete"
       [proceedAction]="save"
+      [saving]="saving()"
       [saveLabel]="isUpdate ? 'Zapisz zmiany' : 'Dodaj gościa'">
       <app-guest-fields [group]="form" />
     </app-popup-form-container>
@@ -34,19 +36,22 @@ export class GuestFormComponent {
   protected readonly form = inject(FormFactoryService).buildGuestForm();
   protected readonly isUpdate = !!this.data.guest;
   protected readonly formTitle = this.isUpdate ? 'Dane gościa' : 'Nowy gość';
+  protected readonly saving = signal(false);
 
   constructor() {
     if (this.data.guest) this.form.patchValue(this.data.guest);
   }
 
   protected readonly save = () => {
+    if (this.saving()) return;
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
     }
     const payload: GuestDto = {...this.form.getRawValue(), country: countryIso(this.form.value.country)};
     const request = this.isUpdate ? this.guestService.update(payload) : this.guestService.create(payload);
-    request.subscribe(() => this.dialogRef.close());
+    this.saving.set(true);
+    request.pipe(finalize(() => this.saving.set(false))).subscribe(() => this.dialogRef.close());
   };
 
   protected readonly confirmDelete = () => {

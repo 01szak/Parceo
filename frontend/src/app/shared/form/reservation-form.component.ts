@@ -2,7 +2,7 @@ import {ChangeDetectionStrategy, Component, computed, effect, inject, signal} fr
 import {AbstractControl, FormGroup, ReactiveFormsModule, ValidationErrors, ValidatorFn} from '@angular/forms';
 import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material/dialog';
 import {rxResource, takeUntilDestroyed, toSignal} from '@angular/core/rxjs-interop';
-import {debounceTime, distinctUntilChanged, filter, map, startWith} from 'rxjs';
+import {debounceTime, distinctUntilChanged, filter, finalize, map, startWith} from 'rxjs';
 import {Moment} from 'moment';
 import {MatFormField, MatHint, MatLabel, MatError, MatSuffix} from '@angular/material/form-field';
 import {MatInput} from '@angular/material/input';
@@ -166,6 +166,8 @@ export class ReservationFormComponent {
   protected readonly showGuestFields = computed(() => this.guestMode() === 'new' || this.editingGuest());
 
   protected readonly submitted = signal(false);
+  //a save request is running; also blocks Enter in the form (ngSubmit)
+  protected readonly saving = signal(false);
 
   constructor() {
     this.stay.addValidators(freeStayValidator(() => this.occupiedNights()));
@@ -225,6 +227,7 @@ export class ReservationFormComponent {
   }
 
   protected readonly save = () => {
+    if (this.saving()) return;
     this.submitted.set(true);
     this.form.markAllAsTouched();
     if (!this.isValid()) return;
@@ -239,7 +242,8 @@ export class ReservationFormComponent {
     };
 
     const request = this.isUpdate ? this.reservationService.update(payload) : this.reservationService.create(payload);
-    request.subscribe(() => this.dialogRef.close());
+    this.saving.set(true);
+    request.pipe(finalize(() => this.saving.set(false))).subscribe(() => this.dialogRef.close());
   };
 
   protected readonly confirmDelete = () => {
