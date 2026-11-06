@@ -19,8 +19,6 @@ import {addDays, nightsBetween, nightsLabel} from '@shared/domain/stay-range';
 import {formatPln} from '@shared/domain/money';
 import {todayIso} from '@shared/domain/iso-date';
 
-//how many rows each card shows; the rest is in the reservation table
-const CARD_LIMIT = 6;
 //occupancy is loaded for the longest strip range
 const OCCUPANCY_HORIZON = 30;
 
@@ -32,6 +30,7 @@ const equals = (key: string, value: string): SearchCriteria => ({key, operation:
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './today-page.component.html',
   styleUrl: './today-page.component.scss',
+  standalone: true
 })
 export class TodayPageComponent {
   private readonly forms = inject(PopupFormService);
@@ -42,9 +41,9 @@ export class TodayPageComponent {
   private readonly today = todayIso();
   protected readonly dateLabel = capitalize(moment().locale('pl').format('dddd, D MMMM YYYY'));
 
-  protected readonly arrivals = createPagedQuery<ReservationDto>(ResourceType.RESERVATION, {pageSize: CARD_LIMIT});
-  protected readonly departures = createPagedQuery<ReservationDto>(ResourceType.RESERVATION, {pageSize: CARD_LIMIT});
-  protected readonly unpaid = createPagedQuery<ReservationDto>(ResourceType.RESERVATION, {pageSize: CARD_LIMIT, sort: {field: 'checkout', direction: 'ASC'}});
+  protected readonly arrivals = createPagedQuery<ReservationDto>(ResourceType.RESERVATION, {unpaged: true});
+  protected readonly departures = createPagedQuery<ReservationDto>(ResourceType.RESERVATION, {unpaged: true});
+  protected readonly unpaid = createPagedQuery<ReservationDto>(ResourceType.RESERVATION, {unpaged: true, sort: {field: 'checkout', direction: 'ASC'}});
   private readonly occupancy = createPagedQuery<ReservationDto>(ResourceType.RESERVATION, {unpaged: true});
 
   protected readonly stripRange = signal<StripRange>(14);

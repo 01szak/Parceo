@@ -35,38 +35,34 @@ const ICONS: Record<TodayListTone, string> = {
     </header>
     <div class="progress">
       @if (loading()) {
-        <mat-progress-bar mode="indeterminate" aria-label="Wczytywanie" />
+        <mat-progress-bar mode="indeterminate" aria-label="Wczytywanie"/>
       }
     </div>
-
-    <ul>
-      @for (item of items(); track item.reservation.id) {
-        <li>
-          <button type="button" class="row" (click)="open.emit(item)">
+    <div class="list-container">
+        @for (item of items(); track item.reservation.id) {
+          <li>
+            <button type="button" class="row" (click)="open.emit(item)">
             <span class="name">
               {{ item.name }}
               @if (item.unpaid) {
-                <app-status-chip kind="unpaid" />
+                <app-status-chip kind="unpaid"/>
               }
             </span>
-            <span class="details">{{ item.details }}</span>
-          </button>
-          @if (actionLabel()) {
-            <button mat-flat-button type="button" class="action" (click)="action.emit(item)">{{ actionLabel() }}</button>
+              <span class="details">{{ item.details }}</span>
+            </button>
+            @if (actionLabel()) {
+              <button mat-flat-button type="button" class="action" (click)="action.emit(item)">{{ actionLabel() }}
+              </button>
+            }
+          </li>
+        } @empty {
+          @if (failed()) {
+            <li class="empty error" role="alert">Nie udało się wczytać listy.</li>
+          } @else if (!loading()) {
+            <li class="empty">{{ emptyText() }}</li>
           }
-        </li>
-      } @empty {
-        @if (failed()) {
-          <li class="empty error" role="alert">Nie udało się wczytać listy.</li>
-        } @else if (!loading()) {
-          <li class="empty">{{ emptyText() }}</li>
         }
-      }
-    </ul>
-
-    @if (hiddenCount() > 0) {
-      <footer>Jeszcze {{ hiddenCount() }} w tabeli rezerwacji poniżej.</footer>
-    }
+    </div>
   `,
   styles: `
     :host {
@@ -107,15 +103,37 @@ const ICONS: Record<TodayListTone, string> = {
       border: 1px solid;
     }
 
-    .tone-arrive { background: var(--res-arrive-container); color: var(--res-on-arrive-container); border-color: var(--res-arrive); }
-    .tone-leave { background: var(--res-leave-container); color: var(--res-on-leave-container); border-color: var(--res-leave); }
-    .tone-unpaid { background: var(--res-unpaid-container); color: var(--res-on-unpaid-container); border-color: var(--res-unpaid); }
+    .tone-arrive {
+      background: var(--res-arrive-container);
+      color: var(--res-on-arrive-container);
+      border-color: var(--res-arrive);
+    }
+
+    .tone-leave {
+      background: var(--res-leave-container);
+      color: var(--res-on-leave-container);
+      border-color: var(--res-leave);
+    }
+
+    .tone-unpaid {
+      background: var(--res-unpaid-container);
+      color: var(--res-on-unpaid-container);
+      border-color: var(--res-unpaid);
+    }
 
     .progress {
       height: 4px;
     }
 
+    .list-container {
+      display: grid;
+      grid-template-rows: repeat(6, auto);
+      overflow-y: auto;
+      max-height:  calc(78px * 6);
+    }
+
     ul {
+      height: 100%;
       margin: 0;
       padding: 0;
       list-style: none;
@@ -127,6 +145,7 @@ const ICONS: Record<TodayListTone, string> = {
       gap: var(--space-3);
       padding-right: 16px;
       border-top: 1px solid var(--mat-sys-outline-variant);
+      max-height: 78px;
     }
 
     .row {
@@ -184,6 +203,7 @@ const ICONS: Record<TodayListTone, string> = {
       color: var(--mat-sys-on-surface-variant);
     }
   `,
+  standalone: true
 })
 export class TodayListCardComponent {
   public readonly title = input.required<string>();
@@ -200,5 +220,4 @@ export class TodayListCardComponent {
   public readonly action = output<TodayListItem>();
 
   protected readonly icon = computed(() => ICONS[this.tone()]);
-  protected readonly hiddenCount = computed(() => this.count() - this.items().length);
 }

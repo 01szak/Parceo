@@ -30,7 +30,7 @@
                        (open)="openReservation($event)" />
   <app-today-list-card title="Do zapłaty" tone="unpaid"
                        [items]="unpaidItems()" [count]="unpaid.page().totalElements" [loading]="unpaid.loading()" [failed]="unpaid.failed()"
-                       emptyText="Wszystko opłacone." actionLabel="Opłacona"
+                       emptyText="Wszystko opłacone." actionLabel="Opłać"
                        (open)="openReservation($event)" (action)="markPaid($event)" />
 </div>
 
