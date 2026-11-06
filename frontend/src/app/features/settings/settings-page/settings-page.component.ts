@@ -41,7 +41,7 @@ const TABS: readonly SettingsTab[] = [
       display: flex;
       flex-direction: column;
       gap: var(--space-4);
-      max-width: 1200px;
+      max-width: 100%;
     }
 
     a mat-icon {
