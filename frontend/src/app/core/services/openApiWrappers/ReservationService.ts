@@ -1,6 +1,7 @@
 import {computed, Injectable, ResourceRef, signal} from '@angular/core';
 import {rxResource} from '@angular/core/rxjs-interop';
 import {AbstractService} from '@core/services/openApiWrappers/AbstractService';
+import {safePage} from './page-utils';
 import {ResourceType} from '@core/services/openApiWrappers/service-facade.service';
 import {Page} from '@core/models/Page';
 import {ReservationDto} from '../../../api';
@@ -33,7 +34,7 @@ export class ReservationService extends AbstractService {
     })
   });
 
-  public readonly reservationsInRange = computed(() => this.rangeResource.value().content as ReservationDto[]);
+  public readonly reservationsInRange = computed(() => safePage(this.rangeResource).content as ReservationDto[]);
 
   protected override reloadResources() {
     super.reloadResources();

@@ -1,69 +1,53 @@
-import {Component, inject, Input} from '@angular/core';
-import {MatDialogActions, MatDialogContent, MatDialogRef, MatDialogTitle} from '@angular/material/dialog';
-import {FormButtonsComponent} from '@shared/ui/buttons/form-buttons.component';
-import {ReactiveFormsModule} from '@angular/forms';
+import {ChangeDetectionStrategy, Component, computed, input} from '@angular/core';
+import {MatDialogClose} from '@angular/material/dialog';
+import {MatButton} from '@angular/material/button';
+import {SideSheetComponent} from '@shared/ui/side-sheet/side-sheet.component';
 
+//frame of an edit form opened in a side sheet: title, optional delete, "Anuluj" and the primary save action
 @Component({
   selector: 'app-popup-form-container',
-  standalone: true,
-  imports: [
-    MatDialogContent,
-    MatDialogTitle,
-    MatDialogActions,
-    FormButtonsComponent,
-    ReactiveFormsModule
-  ],
-  styles: `
-  mat-dialog-content {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    padding: 1.5rem !important;
-    max-height: 60vh;
-    color: #ffffff !important;
-  }
-
-  .deleteIcon {
-    position: absolute;
-    top: 1rem;
-    right: 1rem;
-    z-index: 10;
-  }
-
-  h2[mat-dialog-title] {
-    margin: 0;
-    text-align: center;
-    border-bottom: 1px solid var(--border-color);
-    color: var(--text-primary) !important;
-    padding: 1rem !important;
-  }
-  `,
+  imports: [SideSheetComponent, MatButton, MatDialogClose],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    @if (isUpdate && deleteAction) {
-      <div class="deleteIcon">
-        <i (click)="deleteAction()" class="fa-regular fa-trash-can"></i>
+    <app-side-sheet [title]="formTitle()" [deletable]="canDelete()" (deleteClicked)="deleteAction()?.()">
+      <ng-content />
+      <div sheetFooter class="footer">
+        <div class="summary"><ng-content select="[formSummary]" /></div>
+        <button mat-button type="button" mat-dialog-close>Anuluj</button>
+        <button mat-flat-button type="button" [disabled]="saveDisabled() || saving()" (click)="proceedAction()()">
+          {{ saving() ? 'Zapisywanie…' : saveLabel() }}
+        </button>
       </div>
+    </app-side-sheet>
+  `,
+  styles: `
+    :host {
+      display: block;
+      height: 100%;
     }
-    <h2 mat-dialog-title>{{ formTitle }}</h2>
 
-    <mat-dialog-content>
-      <ng-content></ng-content>
-    </mat-dialog-content>
+    .footer {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      width: 100%;
+    }
 
-    <mat-dialog-actions style="padding: 1rem 1.5rem; border-top: 1px solid var(--border-color); justify-content: flex-end;">
-      <app-form-buttons style="width: 100%"
-        [firstAction]="closeAction"
-        [secondAction]="proceedAction"
-      />
-    </mat-dialog-actions>
+    .summary {
+      flex: 1;
+      min-width: 0;
+    }
   `,
 })
 export class PopupFormContainer {
-  @Input() formTitle = '';
-  @Input() proceedAction!: () => void;
-  @Input() deleteAction: (() => void) | null = null;
-  @Input() isUpdate = false;
+  public readonly formTitle = input.required<string>();
+  public readonly proceedAction = input.required<() => void>();
+  public readonly deleteAction = input<(() => void) | null>(null);
+  public readonly isUpdate = input(false);
+  public readonly saveLabel = input('Zapisz');
+  public readonly saveDisabled = input(false);
+  //a save request is running: the button is disabled so a second click cannot send it again
+  public readonly saving = input(false);
 
-  private readonly dialogRef = inject(MatDialogRef);
-  protected closeAction = () => this.dialogRef.close();
+  protected readonly canDelete = computed(() => this.isUpdate() && !!this.deleteAction());
 }

@@ -1,0 +1,39 @@
+:host {
+  display: block;
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.search {
+  flex: 1 1 260px;
+  max-width: 360px;
+}
+
+.primary {
+  display: block;
+  font-weight: 600;
+}
+
+.secondary {
+  display: block;
+  font: var(--mat-sys-body-medium);
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.chips {
+  display: inline-flex;
+  gap: 6px;
+}
+
+.danger {
+  color: var(--mat-sys-error);
+
+  mat-icon {
+    color: inherit;
+  }
+}

@@ -1,9 +1,13 @@
 import {inject, Injectable} from '@angular/core';
 import {FormBuilder, FormControl, FormGroup, Validators} from '@angular/forms';
+import {Moment} from 'moment';
 import {CamperPlaceDto} from '../../api/models/camper-place-dto';
 import {CamperPlaceTypeDto} from '../../api/models/camper-place-type-dto';
 import {DateFormater} from '@shared/helper/DateFormater';
 import {GuestDto, ReservationDto} from '../../api';
+import {StayRangeGroup} from '@shared/ui/date-range-field/date-range-field.component';
+
+export type GuestMode = 'new' | 'existing';
 
 @Injectable({
   providedIn: 'root'
@@ -11,21 +15,30 @@ import {GuestDto, ReservationDto} from '../../api';
 export class FormFactoryService {
   private fb = inject(FormBuilder);
 
+  public buildStayRange(): StayRangeGroup {
+    return new FormGroup({
+      start: new FormControl<Moment | null>(null, [Validators.required]),
+      end: new FormControl<Moment | null>(null, [Validators.required]),
+    });
+  }
+
   public buildReservationForm(): FormGroup {
     return this.fb.group({
-      checkinDate: new FormControl<moment.Moment | null>(null, [Validators.required]),
-      checkoutDate: new FormControl<moment.Moment | null>(null, [Validators.required]),
+      stay: this.buildStayRange(),
       camperPlace: new FormControl<CamperPlaceDto | null>(null, [Validators.required]),
+      guestMode: new FormControl<GuestMode>('new', {nonNullable: true}),
+      guestSearch: new FormControl<GuestDto | string | null>(null),
       guest: this.buildGuestForm(),
-      isPaid: new FormControl<boolean>(false),
-      guestSearch: new FormControl<string>(''),
+      isPaid: new FormControl<boolean>(false, {nonNullable: true}),
     });
   }
 
   public patchReservation(form: FormGroup, reservation: ReservationDto) {
     form.patchValue({
-      checkinDate: DateFormater.MOMENT(reservation.checkin),
-      checkoutDate: DateFormater.MOMENT(reservation.checkout),
+      stay: {
+        start: DateFormater.MOMENT(reservation.checkin),
+        end: DateFormater.MOMENT(reservation.checkout),
+      },
       camperPlace: reservation.camperPlace,
       isPaid: reservation.paid,
     });
@@ -50,9 +63,9 @@ export class FormFactoryService {
       firstname: new FormControl<string>('', [Validators.required]),
       lastname: new FormControl<string>('', [Validators.required]),
       email: new FormControl<string>('', [Validators.email]),
-      phoneNumber: new FormControl<string>(''),
+      phoneNumber: new FormControl<string>('', [Validators.required]),
       carRegistration: new FormControl<string>(''),
-      country: new FormControl<string>(''),
+      country: new FormControl<string>('', [Validators.required]),
     });
   }
 

@@ -1,0 +1,95 @@
+<app-data-table
+  [columns]="columns"
+  [rows]="rows()"
+  [total]="query.page().totalElements"
+  [pageIndex]="query.pageIndex()"
+  [pageSize]="query.pageSize()"
+  [sort]="query.sort()"
+  [loading]="query.loading()"
+  [failed]="query.failed()"
+  [rowLabel]="rowLabel"
+  (sortChange)="changeSort($event)"
+  (pageChange)="changePage($event)"
+  (rowClick)="open($event)">
+
+  <div tableToolbar class="toolbar">
+    <mat-form-field class="search" subscriptSizing="dynamic">
+      <mat-label>Szukaj</mat-label>
+      <mat-icon matPrefix aria-hidden="true">search</mat-icon>
+      <input matInput [formControl]="searchControl" placeholder="Nazwisko, imię lub rejestracja" autocomplete="off">
+    </mat-form-field>
+
+    <app-filter-bar
+      [views]="views"
+      [savedViews]="savedViewOptions()"
+      [activeViewId]="viewId()"
+      [groups]="filterGroups"
+      [filters]="filterValues()"
+      applyLabel="Pokaż rezerwacje"
+      (viewChange)="changeView($event)"
+      (filtersChange)="changeFilters($event)"
+      (saveFilter)="saveFilter($event)"
+      (deleteSavedView)="deleteSavedView($event)" />
+  </div>
+
+  <ng-template appCell="guest" let-row>
+    <span class="primary">{{ row.guest }}</span>
+    @if (row.car) {
+      <span class="secondary">{{ row.car }}</span>
+    }
+  </ng-template>
+
+  <ng-template appCell="place" let-row>
+    <span class="primary">Parcela {{ row.place }}</span>
+    @if (row.placeType) {
+      <span class="secondary">{{ row.placeType }}</span>
+    }
+  </ng-template>
+
+  <ng-template appCell="status" let-row>
+    <span class="chips">
+      <app-status-chip [kind]="row.status" />
+      @if (row.unpaid) {
+        <app-status-chip kind="unpaid" />
+      }
+    </span>
+  </ng-template>
+
+  <ng-template appCell="price" let-row>
+    <strong>{{ row.price }}</strong>
+  </ng-template>
+
+  <ng-template appCell="actions" let-row>
+    <button mat-icon-button type="button" [matMenuTriggerFor]="rowMenu" [matMenuTriggerData]="{row}"
+            [attr.aria-label]="'Więcej opcji: ' + row.guest">
+      <mat-icon>more_vert</mat-icon>
+    </button>
+  </ng-template>
+
+  <app-empty-state tableEmpty icon="event_busy"
+                   [title]="narrowed() ? 'Brak rezerwacji dla tych filtrów.' : 'Brak rezerwacji w tym widoku.'"
+                   [message]="narrowed() ? 'Zmień wyszukiwanie albo wyczyść filtry.' : ''">
+    @if (narrowed()) {
+      <button mat-button type="button" (click)="clearAll()">Wyczyść filtry</button>
+    }
+  </app-empty-state>
+</app-data-table>
+
+<mat-menu #rowMenu="matMenu" xPosition="before">
+  <ng-template matMenuContent let-row="row">
+    <button mat-menu-item type="button" (click)="open(row)">
+      <mat-icon>edit</mat-icon>
+      <span>Edytuj</span>
+    </button>
+    @if (!row.reservation.paid) {
+      <button mat-menu-item type="button" (click)="markPaid(row)">
+        <mat-icon>payments</mat-icon>
+        <span>Oznacz jako opłaconą</span>
+      </button>
+    }
+    <button mat-menu-item type="button" class="danger" (click)="confirmDelete(row)">
+      <mat-icon>delete</mat-icon>
+      <span>Usuń</span>
+    </button>
+  </ng-template>
+</mat-menu>

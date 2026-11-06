@@ -1,0 +1,99 @@
+<app-popup-form-container
+  [formTitle]="formTitle"
+  [isUpdate]="isUpdate"
+  [deleteAction]="confirmDelete"
+  [proceedAction]="save"
+  [saving]="saving()"
+  [saveLabel]="isUpdate ? 'Zapisz zmiany' : 'Zapisz rezerwację'">
+
+  <form [formGroup]="form" class="sections" (ngSubmit)="save()">
+    <p class="required-note"><span aria-hidden="true">*</span> pole obowiązkowe</p>
+
+    <section aria-labelledby="stay-title">
+      <h3 id="stay-title">Termin</h3>
+      <app-date-range-field [group]="stay" [occupiedNights]="occupiedNights()" />
+    </section>
+
+    <section aria-labelledby="place-title">
+      <h3 id="place-title">Parcela</h3>
+      <mat-form-field>
+        <mat-label>Wolna parcela</mat-label>
+        <mat-select formControlName="camperPlace" [compareWith]="compareById" required>
+          @for (place of placeOptions(); track place.id) {
+            <mat-option [value]="place">{{ placeLabel(place) }}</mat-option>
+          } @empty {
+            <mat-option disabled>{{ placesLoading() ? 'Szukam wolnych parcel…' : 'Brak wolnych parcel w tym terminie' }}</mat-option>
+          }
+        </mat-select>
+        <mat-hint>Lista pokazuje tylko parcele wolne w wybranym terminie.</mat-hint>
+        <mat-error>Wybierz parcelę.</mat-error>
+      </mat-form-field>
+    </section>
+
+    <section aria-labelledby="guest-title">
+      <h3 id="guest-title">Gość</h3>
+
+      @if (!isUpdate) {
+        <mat-button-toggle-group formControlName="guestMode" aria-label="Rodzaj gościa" class="guest-mode"
+                                 (change)="onGuestModeChange($event.value)">
+          <mat-button-toggle value="new">Nowy gość</mat-button-toggle>
+          <mat-button-toggle value="existing">Był już u nas</mat-button-toggle>
+        </mat-button-toggle-group>
+      }
+
+      @if (guestMode() === 'existing') {
+        @if (selectedGuest(); as guest) {
+          <div class="guest-card">
+            <mat-icon aria-hidden="true">person</mat-icon>
+            <div class="guest-text">
+              <strong>{{ guestLabel(guest) }}</strong>
+              <span>{{ guestDetails(guest) }}</span>
+            </div>
+            @if (!editingGuest()) {
+              <button mat-button type="button" (click)="startEditingGuest()">Popraw dane</button>
+            }
+            @if (!isUpdate) {
+              <button mat-button type="button" (click)="clearSelectedGuest()">Zmień gościa</button>
+            }
+          </div>
+        } @else {
+          <mat-form-field>
+            <mat-label>Nazwisko gościa</mat-label>
+            <input matInput formControlName="guestSearch" [matAutocomplete]="guests" autocomplete="off" required>
+            <mat-icon matSuffix aria-hidden="true">search</mat-icon>
+            <mat-autocomplete #guests="matAutocomplete" [displayWith]="guestLabel"
+                              (optionSelected)="selectGuest($event.option.value)">
+              @for (guest of guestSuggestions(); track guest.id) {
+                <mat-option [value]="guest">
+                  <span class="option-name">{{ guestLabel(guest) }}</span>
+                  <span class="option-details">{{ guestDetails(guest) }}</span>
+                </mat-option>
+              }
+            </mat-autocomplete>
+            <mat-hint>Wpisz co najmniej 2 litery nazwiska.</mat-hint>
+          </mat-form-field>
+          @if (guestSearchMissing()) {
+            <p class="error" role="alert">Wybierz gościa z listy albo dodaj nowego.</p>
+          }
+        }
+      }
+
+      @if (showGuestFields()) {
+        <app-guest-fields [group]="guestGroup" />
+      }
+    </section>
+
+    <section aria-labelledby="payment-title">
+      <h3 id="payment-title">Płatność</h3>
+      <mat-checkbox formControlName="isPaid">
+        <span class="paid-label">Gość zapłacił</span>
+        <span class="paid-hint">Jeśli nie, rezerwacja trafi na listę „Do zapłaty”.</span>
+      </mat-checkbox>
+    </section>
+  </form>
+
+  <div formSummary class="summary">
+    <span class="summary-hint">{{ priceHint() }}</span>
+    <strong class="summary-price">{{ priceText() }}</strong>
+  </div>
+</app-popup-form-container>

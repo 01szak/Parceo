@@ -29,30 +29,30 @@ export type CamperPlaceFormData = { camperPlace?: CamperPlaceDto };
   standalone: true,
   styles: `
     form {
-      color: var(--text-primary);
       display: flex;
       flex-direction: column;
+      gap: var(--space-4);
     }
   `,
   template: `
     <ng-template #formFields>
       <form [formGroup]="formGroup">
         <mat-form-field>
-          <mat-label>Indeks</mat-label>
+          <mat-label>Numer parceli</mat-label>
           <input type="text" matInput formControlName="index">
         </mat-form-field>
 
         <mat-form-field>
-          <mat-label>Rodzaj</mat-label>
+          <mat-label>Rodzaj parceli</mat-label>
           <mat-select formControlName="camperPlaceType" [compareWith]="compareFn">
-            @for (type of camperPlaceTypes.content; track type.id) {
+            @for (type of camperPlaceTypes().content; track type.id) {
               <mat-option [value]="type">{{ type.typeName }}</mat-option>
             }
           </mat-select>
         </mat-form-field>
 
         <mat-form-field>
-          <mat-label>Cena</mat-label>
+          <mat-label>Cena za noc (zł)</mat-label>
           <input type="number" matInput formControlName="price">
         </mat-form-field>
       </form>
@@ -82,12 +82,18 @@ export class CamperPlaceFormComponent implements OnInit {
   private readonly dialogRef = inject(MatDialogRef<CamperPlaceFormComponent>, { optional: true });
   private readonly fd: CamperPlaceFormData = inject<CamperPlaceFormData>(MAT_DIALOG_DATA, { optional: true }) || {};
 
-  protected camperPlaceTypes = this.camperPlaceTypeService.pageResource.value();
+  protected camperPlaceTypes = this.camperPlaceTypeService.page;
   protected isUpdate = !!this.fd?.camperPlace;
-  protected formTitle = this.isUpdate ? 'Edytuj Parcelę' : 'Nowa Parcela';
+  protected formTitle = this.isUpdate ? 'Parcela ' + this.fd.camperPlace?.index : 'Nowa parcela';
 
   protected deleteAction = this.isUpdate ? () => {
-    this.camperPlaceService.delete(this.fd.camperPlace?.id!).subscribe(() => this.dialogRef?.close(true));
+    this.confirmationService.openConfirmationPopup({
+      title: 'Usunąć parcelę?',
+      message: `Parcela ${this.fd.camperPlace?.index} zniknie z kalendarza i cennika.`,
+      confirmLabel: 'Usuń',
+      tone: 'danger',
+      action: () => this.camperPlaceService.delete(this.fd.camperPlace?.id!).subscribe(() => this.dialogRef?.close(true)),
+    });
   } : null;
 
   ngOnInit() {
@@ -114,8 +120,9 @@ export class CamperPlaceFormComponent implements OnInit {
     const typeChanged = this.isUpdate && this.fd.camperPlace?.camperPlaceType?.id !== payload.camperPlaceType?.id;
     if (typeChanged) {
       this.confirmationService.openConfirmationPopup({
-        title: 'Zmiana Typu Parceli',
-        message: 'Zmiana typu parceli spowoduje automatyczne nadpisanie jej ceny na cenę domyślną nowego typu. Czy na pewno chcesz kontynuować?',
+        title: 'Zmienić rodzaj parceli?',
+        message: 'Parcela dostanie cenę nowego rodzaju, a jej obecna cena zostanie nadpisana.',
+        confirmLabel: 'Zmień rodzaj',
         action: () => this.save(payload)
       });
     } else {

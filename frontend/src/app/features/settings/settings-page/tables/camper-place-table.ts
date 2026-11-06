@@ -12,10 +12,10 @@ import {CamperPlaceTypeService} from '@core/services/openApiWrappers/CamperPlace
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-regular-table
-      [dtoData]="camperPlaceService.pageResource.value().content"
+      [dtoData]="camperPlaceService.page().content"
       [displayData]="mapToDisplayData()"
       [isLoading]="camperPlaceService.pageResource.isLoading()"
-      [totalElements]="camperPlaceService.pageResource.value().totalElements"
+      [totalElements]="camperPlaceService.page().totalElements"
       [tabColumns]="fields()"
       [pageableSignal]="camperPlaceService.pageable"
       [searchRequestSignal]="camperPlaceService.searchRequest"
@@ -48,7 +48,7 @@ export class CamperPlaceTable implements OnInit {
   {this.camperPlaceService.pageable.set({sort: ['index', 'ASC'], size: 2147483647, page: 0})};
 
   protected mapToDisplayData() {
-    return this.camperPlaceService.pageResource.value().content.map(c => {
+    return this.camperPlaceService.page().content.map(c => {
       const cp = c as CamperPlaceDto;
       return {
         id: cp.id,

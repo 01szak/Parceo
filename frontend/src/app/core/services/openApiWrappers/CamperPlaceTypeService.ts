@@ -17,7 +17,9 @@ export class CamperPlaceTypeService extends AbstractService {
     stream: () => from(this.serviceFacade.api.invoke(getTypes))
   });
 
-  public getAll =  computed(() => this.allTypesResource.value()?.map(cpt => cpt.typeName) || []);
+  public getAll =  computed(() => this.allTypesResource.hasValue()
+    ? this.allTypesResource.value()?.map(cpt => cpt.typeName) ?? []
+    : []);
 
 
 }

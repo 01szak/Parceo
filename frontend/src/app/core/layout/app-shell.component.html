@@ -1,0 +1,71 @@
+<div class="shell" [class]="'shell layout-' + layout()">
+
+  @if (layout() !== 'bar') {
+    <nav class="side" aria-label="Menu główne">
+      <app-parceo-logo class="logo" [showName]="layout() === 'drawer'" />
+
+      @for (item of primaryNav; track item.path) {
+        <ng-container *ngTemplateOutlet="navLink; context: {$implicit: item}" />
+      }
+
+      <span class="spacer"></span>
+
+      @for (item of secondaryNav; track item.path) {
+        <ng-container *ngTemplateOutlet="navLink; context: {$implicit: item}" />
+      }
+
+      <button type="button" class="nav-link account" [matMenuTriggerFor]="accountMenu" aria-label="Konto">
+        <span class="avatar" aria-hidden="true">{{ initials() }}</span>
+        <span class="label">{{ employee()?.username ?? 'Konto' }}</span>
+      </button>
+    </nav>
+  }
+
+  <main class="content">
+    <router-outlet />
+  </main>
+
+  @if (layout() === 'bar') {
+    <nav class="bottom" aria-label="Menu główne">
+      @for (item of bottomNav; track item.path) {
+        <ng-container *ngTemplateOutlet="navLink; context: {$implicit: item}" />
+      }
+      <button type="button" class="nav-link account" [matMenuTriggerFor]="accountMenu" aria-label="Konto">
+        <span class="avatar" aria-hidden="true">{{ initials() }}</span>
+        <span class="label">Konto</span>
+      </button>
+    </nav>
+  }
+</div>
+
+<ng-template #navLink let-item>
+  <a class="nav-link" [routerLink]="item.path" routerLinkActive="active" ariaCurrentWhenActive="page">
+    <span class="indicator"><mat-icon aria-hidden="true">{{ item.icon }}</mat-icon></span>
+    <span class="label">{{ item.label }}</span>
+  </a>
+</ng-template>
+
+<mat-menu #accountMenu="matMenu" xPosition="after" yPosition="above">
+  @if (employee(); as emp) {
+    <div class="account-info">
+      <strong>{{ emp.username }}</strong>
+      <span>{{ emp.email }}</span>
+      <span>{{ roleLabel() }}</span>
+    </div>
+    <mat-divider />
+  }
+  <div class="menu-heading" role="presentation">Motyw</div>
+  @for (option of themeOptions; track option.mode) {
+    <button mat-menu-item type="button" role="menuitemradio"
+            [attr.aria-checked]="theme.mode() === option.mode"
+            (click)="theme.setMode(option.mode)">
+      <mat-icon>{{ theme.mode() === option.mode ? 'check' : option.icon }}</mat-icon>
+      <span>{{ option.label }}</span>
+    </button>
+  }
+  <mat-divider />
+  <button mat-menu-item type="button" (click)="logout()">
+    <mat-icon>logout</mat-icon>
+    <span>Wyloguj się</span>
+  </button>
+</mat-menu>

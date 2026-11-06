@@ -22,7 +22,7 @@ import {
 import {MatPaginator, PageEvent} from '@angular/material/paginator';
 
 import {MatCheckbox} from '@angular/material/checkbox';
-import {StatusComponent} from '@shared/ui/data-table/status/status.component';
+import {StatusChipComponent} from '@shared/ui/status-chip/status-chip.component';
 import {NgClass, CommonModule} from '@angular/common';
 import {MatDialog} from '@angular/material/dialog';
 import {SearchByPopupComponent} from '@shared/popups/search/search-by-popup.component';
@@ -87,7 +87,7 @@ export const PAGE_SIZE_OPTIONS: number[] = [10, 20, 50, 100];
     MatRowDef,
     MatPaginator,
     MatCheckbox,
-    StatusComponent,
+    StatusChipComponent,
     NgClass,
     MatProgressSpinner,
   ],
@@ -308,7 +308,8 @@ export const PAGE_SIZE_OPTIONS: number[] = [10, 20, 50, 100];
                       </mat-checkbox>
                     }
                     @case ('STATUS') {
-                      <app-status [status]="element[field.name]"></app-status>
+                      <!-- the consumer maps the raw backend status to a ReservationChipKind -->
+                      <app-status-chip [kind]="element[field.name]" />
                     }
                     @case ('OBJECT') {
                       {{ getObjectDisplayValue(element, field) }}
