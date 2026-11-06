@@ -8,11 +8,24 @@
 
 .scroll {
   --place-column: 136px;
-  --half-day: 21px;
   overflow-x: auto;
+  overscroll-behavior-x: contain;
+  //the grid grows and shrinks while scrolling, so its scrollbar jumps: scroll by dragging, swiping or the arrows instead
+  scrollbar-width: none;
+  user-select: none;
 
-  &.compact {
-    --half-day: 15px;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
+  &.drag-scrolling {
+    cursor: grabbing;
+
+    .cell,
+    .bar {
+      cursor: grabbing;
+      pointer-events: none;
+    }
   }
 
   @media (max-width: 599.98px) {

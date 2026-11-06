@@ -1,37 +1,29 @@
 <div class="toolbar">
   <div class="navigation">
-    <button mat-icon-button type="button" (click)="previous()" aria-label="Poprzedni okres">
+    <button mat-icon-button type="button" (click)="previous()" aria-label="Przewiń wstecz">
       <mat-icon>chevron_left</mat-icon>
     </button>
-    <button mat-icon-button type="button" (click)="next()" aria-label="Następny okres">
+    <button mat-icon-button type="button" (click)="next()" aria-label="Przewiń dalej">
       <mat-icon>chevron_right</mat-icon>
     </button>
-    <h1>{{ title() }}</h1>
-    <button mat-stroked-button type="button" (click)="goToToday()" [disabled]="showsToday()">Dziś</button>
+    <h1 aria-live="polite">{{ title() }}</h1>
+    <button mat-stroked-button type="button" class="today" (click)="goToToday()" [disabled]="todayVisible()">Dziś</button>
   </div>
 
-  <div class="controls">
-    <mat-form-field subscriptSizing="dynamic" class="type-filter">
-      <mat-label>Rodzaj parceli</mat-label>
-      <mat-select [value]="typeFilter()" (valueChange)="typeFilter.set($event)">
-        <mat-option [value]="allTypes">Wszystkie rodzaje</mat-option>
-        @for (type of typeOptions(); track type.id) {
-          <mat-option [value]="type.id">{{ type.typeName }}</mat-option>
-        }
-      </mat-select>
-    </mat-form-field>
+  <mat-form-field subscriptSizing="dynamic" class="type-filter">
+    <mat-label>Rodzaj parceli</mat-label>
+    <mat-select [value]="typeFilter()" (valueChange)="typeFilter.set($event)">
+      <mat-option [value]="allTypes">Wszystkie rodzaje</mat-option>
+      @for (type of typeOptions(); track type.id) {
+        <mat-option [value]="type.id">{{ type.typeName }}</mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
 
-    <mat-button-toggle-group [value]="range()" (change)="range.set($event.value)" aria-label="Zakres kalendarza">
-      <mat-button-toggle value="week">Tydzień</mat-button-toggle>
-      <mat-button-toggle value="twoWeeks">2 tygodnie</mat-button-toggle>
-      <mat-button-toggle value="month">Miesiąc</mat-button-toggle>
-    </mat-button-toggle-group>
-
-    <button mat-flat-button type="button" class="new" (click)="newReservation()">
-      <mat-icon>add</mat-icon>
-      Nowa rezerwacja
-    </button>
-  </div>
+  <button mat-flat-button type="button" class="new" (click)="newReservation()">
+    <mat-icon>add</mat-icon>
+    Nowa rezerwacja
+  </button>
 </div>
 
 <div class="progress">
@@ -41,13 +33,18 @@
 </div>
 
 @if (failed()) {
-  <app-empty-state icon="cloud_off" title="Nie udało się wczytać kalendarza."
-                   message="Sprawdź połączenie z internetem i odśwież stronę." />
-} @else if (!loading() && rows().length === 0) {
+  <p class="error" role="alert">
+    <mat-icon aria-hidden="true">cloud_off</mat-icon>
+    Nie udało się wczytać części kalendarza. Sprawdź połączenie z internetem i odśwież stronę.
+  </p>
+}
+
+@if (!firstLoad() && rows().length === 0) {
   <app-empty-state icon="grid_view" title="Brak parcel do pokazania."
                    message="Dodaj parcele w Ustawieniach albo wybierz inny rodzaj." />
 } @else {
-  <app-calendar-grid [days]="days()" [rows]="rows()" [compact]="range() === 'month'"
+  <app-calendar-grid [days]="days()" [rows]="rows()" [visibleDays]="visibleDays()" [initialDay]="today"
+                     (edgeReached)="onEdge($event)" (visibleRangeChange)="onVisibleRange($event)"
                      (barClick)="openReservation($event)" (cellClick)="bookCell($event)" />
 }
 
@@ -55,5 +52,5 @@
   @for (kind of legend; track kind) {
     <app-status-chip [kind]="kind" />
   }
-  <span class="hint">Kliknij puste pole, żeby dodać rezerwację na tę parcelę i ten dzień.</span>
+  <span class="hint">Przeciągnij siatkę w bok, żeby zobaczyć inne dni. Kliknij puste pole, żeby dodać rezerwację.</span>
 </div>

@@ -1,4 +1,4 @@
-import {barTone, calendarBars, calendarDays, startOfWeek} from './calendar-layout';
+import {barTone, calendarBars, calendarDays} from './calendar-layout';
 import {ReservationDto} from '../../api';
 
 describe('calendar layout', () => {
@@ -6,10 +6,6 @@ describe('calendar layout', () => {
   const reservation = (checkin: string, checkout: string, extra: Partial<ReservationDto> = {}): ReservationDto =>
     ({id: 1, checkin, checkout, paid: true, reservationStatus: 'COMING', camperPlace: {id: 1, price: 130, camperPlaceType: {typeName: 'Kamper', price: 130}}, guest: {id: 1}, ...extra});
 
-  it('starts the week on Monday', () => {
-    expect(startOfWeek('2026-11-01')).toBe('2026-10-26');
-    expect(startOfWeek('2026-10-26')).toBe('2026-10-26');
-  });
 
   it('marks weekends, today and week starts', () => {
     const days = calendarDays('2026-10-31', 3, today);

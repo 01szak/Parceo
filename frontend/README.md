@@ -82,7 +82,7 @@ The split: **`features/` knows where the data comes from** (injects services, bu
    ├─ createPagedQuery(type)      a list with its own state (criteria, page, sorting)
    ├─ ReservationService, GuestService, CamperPlaceService, CamperPlaceTypeService
    │    (extend AbstractService: create / update / delete + notification)
-   └─ OrganisationService, StaffApi, ReservationNotesApi   ← MOCK (core/mocks)
+   └─ OrganisationService, StaffApi, ReservationNotesApi, DisplaySettingsService   ← MOCK (core/mocks)
    ▼
  ServiceFacade (openApiWrappers/service-facade.service.ts)
    │  one switch on ResourceType: which generated API function to call
@@ -138,6 +138,25 @@ Data needed in many places at once is kept by services in a single resource:
 - `CamperPlaceTypeService.page()`: all place types (the backend has no paged endpoint for them, so the facade wraps the list in a single page).
 - `EmployeeService.employee$`: the logged-in user (`GET /user`), fetched once by the app shell.
 - `OrganisationService.organisation()` and `.initials()`: campsite details (mock).
+- `DisplaySettingsService`: the logged-in user's display settings (mock): `calendarDays()` (how many days the calendar shows, 30 by default) and `calendarScrollDays()` (how many days the arrows scroll, 7 by default). While the settings load, the signals hold the defaults.
+
+### Calendar: loading in blocks
+
+The calendar scrolls without end, so it does not fetch all reservations at once:
+
+```
+ CalendarPageComponent                 window of days (CalendarWindow {from, days}) in a signal
+   ├─ CalendarGridComponent            near an edge emits edgeReached('start' | 'end')
+   │     └─ the page adds a block of days (extendBackward / extendForward from calendar-window.ts)
+   └─ CalendarReservationsLoader       one findBy(RESERVATION) request per block
+                                       with checkin < block end AND checkout > block start
+```
+
+- A block has as many days as `calendarDays()`. The window starts with 3 blocks and today in the middle. It holds at most 5 blocks (`MAX_BLOCKS`); scrolling further drops a block on the other side.
+- `CalendarReservationsLoader` (provided by the page) fetches only missing blocks, merges reservations by `id` (a stay across two blocks appears once), forgets blocks outside the window and reloads all of them after a change in `DataVersionService`. When a block fails to load, the previous data stays and a message appears.
+- The grid has no scrollbar (it jumped while days were added). It scrolls with a finger, a touchpad, by dragging with the mouse (`DragScrollDirective`) and with the arrows.
+- After days are added before the first day, the grid moves `scrollLeft` by their width, so the view does not jump. Day width = (grid width − place column) / `calendarDays()`, at least 32 px.
+- „Dziś” scrolls to today; when today is outside the window, the window starts again around today.
 
 ### 3. One-off requests
 
@@ -245,6 +264,7 @@ All are standalone, `OnPush`, with `input()` / `output()`. They do not inject da
 | `DonutChartComponent` | `app-donut-chart` | donut chart with a legend and shares | in: `slices` (`DonutSlice[]`, colours `var(--chart-1…4)`, `var(--chart-other)`), `valueLabel`, `totalLabel` |
 | `ParceoLogoComponent` | `app-parceo-logo` | the Parceo mark in theme colours | in: `size`, `showName` |
 | `MockNoticeComponent` | `app-mock-notice` | notice that mock data is saved only in this browser | default text or content projection |
+| `DragScrollDirective` | `[appDragScroll]` | sideways scrolling by dragging with the mouse (touch and touchpad scroll natively); a drag does not click what it started on | directive on the scrolling element |
 
 Table example (from `features/reservations/reservations-table`):
 
@@ -287,7 +307,7 @@ The table can also work on local data (sorting and paging in the browser), like 
 |---|---|
 | `TodayListCardComponent` | the Przyjazdy / Wyjazdy / Do zapłaty cards on the Dziś screen |
 | `FreeParcelsStripComponent`, `FreeParcelsDialogComponent` | free place tiles and the dialog listing free places for a night |
-| `CalendarGridComponent` | calendar grid: places × days, reservation bars; out: `barClick`, `cellClick` |
+| `CalendarGridComponent` | scrolling calendar grid: places × days, reservation bars; in: `days`, `rows`, `visibleDays`, `initialDay`; out: `barClick`, `cellClick`, `edgeReached`, `visibleRangeChange` |
 | `ReservationsTableComponent` | ready-made reservations table with search, filters and saved filters |
 
 ## Domain logic (`shared/domain`)
@@ -300,7 +320,8 @@ Pure functions with no Angular dependency. Every file has a `*.spec.ts` test. Da
 | `stay-range.ts` | `nightsBetween`, `nightsLabel` („3 noce”), `stayHint`, `nightsOf`, `firstConflict`, `withoutOwnStay`, `stayLabel`, `addDays` |
 | `reservation-query.ts` | views and filters of the reservations table, `reservationCriteria()`, `filterLabels()` |
 | `occupancy.ts` | `occupiesNight`, `freePlaceIdsOn`, `availabilityPerDay`, `freeNightsInARow` |
-| `calendar-layout.ts` | `startOfWeek`, `calendarDays`, `barTone`, `calendarBars` (bar positions in half-days) |
+| `calendar-layout.ts` | `calendarDays`, `barTone`, `calendarBars` (bar positions in half-days) |
+| `calendar-window.ts` | the calendar's window of days: `initialWindow`, `extendBackward`, `extendForward`, `blockStarts`, `containsDay`, `visibleMonthsTitle` („Październik – listopad 2026”) |
 | `reports.ts` | `buildReport()` (revenue spread over nights, occupancy, by place type, countries, unpaid), `percentChange`, `topCountries` |
 | `report-period.ts` | `reportPeriod()`, `previousPeriod()`, Polish phrases („we wrześniu”, „w 2025 roku”) |
 | `today-summary.ts` | summary sentences of the Dziś screen |
@@ -345,6 +366,7 @@ Data the backend does not provide yet is mocked in the frontend.
 | `OrganisationApi` | `OrganisationMockApi` | `OrganisationService` (Settings › Kemping, campsite name in the menu) | GET / PATCH for the organisation (the `Organisation` entity already exists) |
 | `StaffApi` | `StaffMockApi` | `SettingsStaffComponent` (invitations) | a list of the campsite's users, invitations and registration (`/auth/register` is commented out today) |
 | `ReservationNotesApi` | `ReservationNotesMockApi` | `ReservationFormComponent` (Uwagi) | a `notes` field in `Reservation` / `ReservationDTO` |
+| `DisplaySettingsApi` | `DisplaySettingsMockApi` | `DisplaySettingsService` (days in the calendar, arrow step) | GET / PUT for the logged-in user's display settings, stored per user |
 
 - Registration: `core/mocks/provide-mocks.ts`, wired into `app.config.ts`. **Moving to the backend** means writing a class that implements the given API (e.g. `OrganisationHttpApi extends OrganisationApi`, calling the endpoint through `Api`) and swapping it in `provideMocks()`. Screens do not change.
 - Mock data is saved in `localStorage` with the `parceo.mock.` prefix (`mock-storage.ts`).

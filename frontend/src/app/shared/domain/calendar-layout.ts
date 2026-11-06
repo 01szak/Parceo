@@ -36,12 +36,6 @@ function weekday(iso: string): number {
   return new Date(Date.UTC(y, m - 1, d)).getUTCDay();
 }
 
-//the Monday of the week of the given date
-export function startOfWeek(iso: string): string {
-  const day = weekday(iso);
-  return addDays(iso, day === 0 ? -6 : 1 - day);
-}
-
 export function calendarDays(from: string, count: number, today: string): CalendarDay[] {
   return Array.from({length: count}, (_, i) => {
     const date = addDays(from, i);
