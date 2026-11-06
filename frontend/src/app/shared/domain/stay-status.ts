@@ -14,7 +14,7 @@ export interface ChipMeta {
 
 export const RESERVATION_CHIP_META: Record<ReservationChipKind, ChipMeta> = {
   arrive: {label: 'Przyjazd', icon: 'arrow_forward', tone: 'arrive'},
-  stay: {label: 'Na miejscu', icon: 'check', tone: 'stay'},
+  stay: {label: 'Aktywna', icon: 'check', tone: 'stay'},
   leave: {label: 'Wyjazd dziś', icon: 'arrow_back', tone: 'leave'},
   ended: {label: 'Zakończona', icon: 'done_all', tone: 'leave'},
   late: {label: 'Po terminie', icon: 'warning', tone: 'late'},

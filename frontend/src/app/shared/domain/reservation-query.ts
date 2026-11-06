@@ -55,7 +55,7 @@ export const RESERVATION_FILTER_GROUPS: readonly FilterGroup[] = [
   {
     key: 'status', label: 'Status', options: [
       {value: 'any', label: 'Dowolny'},
-      {value: 'stay', label: 'Na miejscu'},
+      {value: 'stay', label: 'Aktywna'},
       {value: 'arrive', label: 'Przyjazd'},
       {value: 'ended', label: 'Zakończona'},
       {value: 'late', label: 'Po terminie'},

@@ -24,9 +24,9 @@ const TONE_ICONS: Record<BarTone, string> = {
 
 const TONE_LABELS: Record<BarTone, string> = {
   arrive: 'przyjazd',
-  stay: 'na miejscu',
+  stay: 'aktywna',
   leave: 'wyjazd lub zakończona',
-  unpaid: 'na miejscu, nieopłacona',
+  unpaid: 'aktywna, nieopłacona',
   late: 'po terminie, nieopłacona',
 };
 
