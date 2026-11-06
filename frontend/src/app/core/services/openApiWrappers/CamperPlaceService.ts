@@ -2,7 +2,7 @@ import {Injectable, ResourceRef, computed, inject} from '@angular/core';
 import {rxResource} from '@angular/core/rxjs-interop';
 import {Page} from '@core/models/Page';
 import { ResourceType } from "./service-facade.service";
-import {AbstractService} from '@core/services/openApiWrappers/AbstractService';
+import {PagedCrudService} from '@core/services/openApiWrappers/PagedCrudService';
 import {safePage} from './page-utils';
 import {
   CamperPlaceDto,
@@ -18,7 +18,7 @@ import {from, Observable} from 'rxjs';
 const ALL_SORTED_BY_INDEX: Pageable = {page: 0, size: 2147483647, sort: ['index', 'ASC']};
 
 @Injectable({providedIn: "root"})
-export class CamperPlaceService extends AbstractService {
+export class CamperPlaceService extends PagedCrudService {
 
   public override getType(): ResourceType {
       return ResourceType.CAMPER_PLACE;
