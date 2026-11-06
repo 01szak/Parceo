@@ -29,13 +29,13 @@
 
     <ng-template appCell="actions" let-row>
       <span class="actions">
-        <button mat-icon-button type="button" (click)="editType(row.type); $event.stopPropagation()"
+        <button mat-icon-button type="button" (click)="editType(row.type)"
                 [attr.aria-label]="'Zmień rodzaj ' + row.name">
           <mat-icon>edit</mat-icon>
         </button>
         <span [matTooltip]="row.places ? 'Najpierw przenieś parcele do innego rodzaju.' : ''">
           <button mat-icon-button type="button" class="danger" [disabled]="row.places > 0"
-                  (click)="deleteType(row); $event.stopPropagation()" [attr.aria-label]="'Usuń rodzaj ' + row.name">
+                  (click)="deleteType(row)" [attr.aria-label]="'Usuń rodzaj ' + row.name">
             <mat-icon>delete</mat-icon>
           </button>
         </span>
