@@ -16,6 +16,7 @@ import {ReservationService} from '@core/services/openApiWrappers/ReservationServ
 import {CamperPlaceService} from '@core/services/openApiWrappers/CamperPlaceService';
 import {GuestService} from '@core/services/openApiWrappers/GuestService';
 import {PopupConfirmationService} from '@core/services/PopupConfirmationService';
+import {NotificationService} from '@core/services/NotificationService';
 import {FormFactoryService, GuestMode} from '@shared/form/FormFactoryService';
 import {PopupFormContainer} from './popup-form-container.component';
 import {GuestFieldsComponent} from './guest-fields.component';
@@ -154,6 +155,8 @@ export class ReservationFormComponent {
   );
   //true while the price must not follow the price list: a saved reservation or a price typed by hand
   private readonly keepPrice = signal(this.isUpdate);
+  //the stay the kept price belongs to; picking the same dates again keeps it
+  private keptStay: StayIso | undefined;
 
   protected readonly priceText = computed(() => {
     const price = this.price();
@@ -164,6 +167,7 @@ export class ReservationFormComponent {
     const price = this.price();
     return list === null || price === null ? 0 : list - price;
   });
+  protected readonly priceMissing = computed(() => this.price() === null || this.price() === undefined);
   //under the price field: what the price list says and how far the price is from it
   protected readonly listPriceHint = computed(() => {
     const list = this.listPrice();
@@ -183,6 +187,7 @@ export class ReservationFormComponent {
   });
 
   private readonly notesApi = inject(ReservationNotesApi);
+  private readonly notifications = inject(NotificationService);
   //where the note of the edited reservation is kept now (it moves with the parcel and the arrival date)
   private readonly savedNoteKey = this.data.reservation?.camperPlace?.id !== undefined && this.data.reservation.checkin
     ? noteKey(this.data.reservation.camperPlace.id, this.data.reservation.checkin)
@@ -217,7 +222,11 @@ export class ReservationFormComponent {
       if (list !== null && !this.keepPrice()) this.priceControl.setValue(list);
     });
     //a different stay or parcel needs a new price, also when editing
-    this.stay.valueChanges.pipe(takeUntilDestroyed()).subscribe(() => this.keepPrice.set(false));
+    //re-picking the dates clears the end for a moment, so only a complete stay that differs counts
+    this.stay.valueChanges.pipe(takeUntilDestroyed()).subscribe(() => {
+      const stay = this.toStayIso();
+      if (stay && (stay.checkin !== this.keptStay?.checkin || stay.checkout !== this.keptStay?.checkout)) this.keepPrice.set(false);
+    });
     this.form.get('camperPlace')!.valueChanges.pipe(takeUntilDestroyed()).subscribe(() => this.keepPrice.set(false));
 
     this.setupGuestSearch();
@@ -225,7 +234,12 @@ export class ReservationFormComponent {
   }
 
   protected onPriceTyped(): void {
+    this.keepPriceForCurrentStay();
+  }
+
+  private keepPriceForCurrentStay(): void {
     this.keepPrice.set(true);
+    this.keptStay = this.toStayIso();
   }
 
   protected restoreListPrice(): void {
@@ -297,8 +311,10 @@ export class ReservationFormComponent {
     const request = this.isUpdate ? this.reservationService.update(payload) : this.reservationService.create(payload);
     this.saving.set(true);
     request.pipe(finalize(() => this.saving.set(false))).subscribe(() => {
-      this.saveNotes(payload);
+      //the reservation is saved: close first, so a failing note never leaves a form that would save it twice
+      const notes = this.form.get('notes')!.value;
       this.dialogRef.close();
+      this.saveNotes(payload, notes);
     });
   };
 
@@ -324,10 +340,15 @@ export class ReservationFormComponent {
   }
 
   //MOCK: notes are kept in this browser until the reservation has a notes field (PLAN.md)
-  private saveNotes(payload: ReservationDto): void {
+  private saveNotes(payload: ReservationDto, notes: string): void {
     const placeId = payload.camperPlace?.id;
     if (placeId === undefined) return;
-    this.notesApi.save(noteKey(placeId, payload.checkin), this.form.get('notes')!.value, this.savedNoteKey).subscribe();
+    const failed = () => this.notifications.warning('Rezerwacja zapisana, ale nie udało się zapisać uwag.');
+    try {
+      this.notesApi.save(noteKey(placeId, payload.checkin), notes, this.savedNoteKey).subscribe({error: failed});
+    } catch {
+      failed();
+    }
   }
 
   private guestPayload(): GuestDto {
@@ -369,7 +390,7 @@ export class ReservationFormComponent {
         price: reservation.price ?? null,
       });
       //patching fires valueChanges; the saved price must stay until the user changes the stay or the parcel
-      this.keepPrice.set(true);
+      this.keepPriceForCurrentStay();
       if (reservation.guest) this.selectGuest(reservation.guest);
       if (this.savedNoteKey) this.notesApi.get(this.savedNoteKey).subscribe(notes => this.form.patchValue({notes}));
       return;

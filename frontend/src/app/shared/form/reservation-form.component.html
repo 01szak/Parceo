@@ -94,7 +94,7 @@
           <mat-error>Podaj cenę (0 zł lub więcej).</mat-error>
         </mat-form-field>
         <p class="price-hint">{{ listPriceHint() }}</p>
-        @if (listPrice() !== null && priceDifference() !== 0) {
+        @if (listPrice() !== null && (priceMissing() || priceDifference() !== 0)) {
           <button mat-button type="button" class="restore" (click)="restoreListPrice()">
             <mat-icon>restart_alt</mat-icon>
             Przywróć cenę z cennika
