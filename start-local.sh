@@ -1,6 +1,21 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+log() { printf '\033[1;34m[local]\033[0m %s\n' "$*"; }
+err() { printf '\033[1;31m[local]\033[0m %s\n' "$*" >&2; }
+
+# optional: ./start-local.sh debug  (backend waits for a debugger on port 5005)
+OPTIONS="${1:-}"
+
+declare -A OPTIONS_MAP=(
+    [debug]="-Dspring-boot.run.jvmArguments=-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=*:5005"
+)
+
+if [[ -n "$OPTIONS" && -z "${OPTIONS_MAP[$OPTIONS]+_}" ]]; then
+    err "Unknown option: $OPTIONS (allowed: ${!OPTIONS_MAP[*]})"
+    exit 1
+fi
+
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BACKEND_DIR="$ROOT/backend"
 FRONTEND_DIR="$ROOT/frontend"
@@ -9,9 +24,6 @@ DB_TIMEOUT="${DB_TIMEOUT:-90}"
 BACKEND_TIMEOUT="${BACKEND_TIMEOUT:-180}"
 
 PIDS=()
-
-log() { printf '\033[1;34m[local]\033[0m %s\n' "$*"; }
-err() { printf '\033[1;31m[local]\033[0m %s\n' "$*" >&2; }
 
 cleanup() {
   trap - EXIT INT TERM
@@ -52,8 +64,18 @@ done
 
 # 2. Backend
 log "Starting backend..."
-(cd "$BACKEND_DIR" && exec setsid ./mvnw spring-boot:run) &
-PIDS+=($!)
+MAVEN_ARGS=()
+
+if [[ -n "$OPTIONS" ]]; then
+    MAVEN_ARGS+=("${OPTIONS_MAP[$OPTIONS]}")
+fi
+
+log "Maven arguments: ${MAVEN_ARGS[*]}"
+(
+    cd "$BACKEND_DIR" &&
+    exec setsid ./mvnw spring-boot:run "${MAVEN_ARGS[@]}"
+) &
+PIDS+=("$!")
 BACKEND_PID=$!
 
 log "Waiting for backend on port ${BACKEND_PORT} (max ${BACKEND_TIMEOUT}s)..."
