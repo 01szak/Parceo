@@ -3,7 +3,7 @@ import {toSignal} from '@angular/core/rxjs-interop';
 import {map, startWith} from 'rxjs';
 import {MatButton} from '@angular/material/button';
 import {MatIcon} from '@angular/material/icon';
-import {MatChipListbox, MatChipOption} from '@angular/material/chips';
+import {MatChipListbox, MatChipListboxChange, MatChipOption} from '@angular/material/chips';
 import {MatProgressBar} from '@angular/material/progress-bar';
 import {ReservationDto, SearchCriteria} from '../../api';
 import {ResourceType} from '@core/services/openApiWrappers/service-facade.service';
@@ -94,13 +94,16 @@ export class ReportsPageComponent {
   protected readonly report = computed(() => buildReport(this.current.page().content, this.places(), this.period()));
   private readonly previousReport = computed(() => buildReport(this.before.page().content, this.places(), this.previous()));
 
-  protected readonly loading = computed(() => this.current.loading() || this.before.loading());
+  protected readonly loading = computed(() =>
+    this.current.loading() || this.before.loading() || this.camperPlaces.unpagedCamperPlaceResource.isLoading());
+  //the previous period only feeds the comparison; until it is here (or when it failed) there is nothing to compare with
+  private readonly comparisonReady = computed(() => !this.before.loading() && !this.before.failed());
   protected readonly failed = computed(() => this.current.failed() || this.camperPlaces.unpagedCamperPlaceResource.status() === 'error');
 
   protected readonly summary = computed(() => {
     const period = this.period();
     const report = this.report();
-    const change = percentChange(report.revenue, this.previousReport().revenue);
+    const change = this.comparisonReady() ? percentChange(report.revenue, this.previousReport().revenue) : null;
     const comparison = change === null ? '' : change === 0
       ? `, tyle samo co ${period.comparison}`
       : `, o ${Math.abs(change)}% ${change > 0 ? 'więcej' : 'mniej'} niż ${period.comparison}`;
@@ -113,12 +116,17 @@ export class ReportsPageComponent {
   protected readonly tiles = computed(() => {
     const report = this.report();
     return [
-      {label: 'Przychód', value: formatPln(report.revenue), note: `poprzednio ${formatPln(this.previousReport().revenue)}`},
+      {label: 'Przychód', value: formatPln(report.revenue), note: this.previousRevenueNote()},
       {label: 'Sprzedane noce', value: String(report.nights), note: `na ${countLabel(this.places().length, 'parceli', 'parcelach', 'parcelach')}`},
       {label: 'Obłożenie', value: `${Math.round(report.occupancy * 100)}%`, note: 'zajętych nocy'},
       {label: 'Nieopłacone', value: formatPln(report.unpaidAmount), note: countLabel(report.unpaidReservations, 'rezerwacja', 'rezerwacje', 'rezerwacji')},
     ];
   });
+
+  private previousRevenueNote(): string {
+    if (this.before.failed()) return 'brak porównania z poprzednim okresem';
+    return `poprzednio ${this.comparisonReady() ? formatPln(this.previousReport().revenue) : '—'}`;
+  }
 
   protected readonly chartTitle = computed(() =>
     this.report().bucketUnit === 'day' ? 'Przychód dzień po dniu' : 'Przychód miesiąc po miesiącu');
@@ -167,6 +175,9 @@ export class ReportsPageComponent {
   protected readonly guestsCount = (count: number) => countLabel(count, 'gość', 'gości', 'gości');
 
   constructor() {
+    //set right away, otherwise the first request would ask for every reservation before the effect runs
+    this.current.criteria.set(overlapping(this.period()));
+    this.before.criteria.set(overlapping(this.previous()));
     effect(() => {
       const current = overlapping(this.period());
       const before = overlapping(this.previous());
@@ -177,8 +188,14 @@ export class ReportsPageComponent {
     });
   }
 
-  protected choosePeriod(kind: PeriodKind | null): void {
-    if (kind) this.kind.set(kind);
+  protected choosePeriod(change: MatChipListboxChange): void {
+    const kind = change.value as PeriodKind | undefined;
+    if (kind) {
+      this.kind.set(kind);
+    } else {
+      //clicking the selected chip deselects it; a period is always chosen, so select it again
+      change.source.value = this.kind();
+    }
   }
 
   protected downloadCsv(): void {

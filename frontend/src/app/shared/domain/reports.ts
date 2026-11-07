@@ -143,9 +143,9 @@ export function percentChange(current: number, previous: number): number | null 
   return Math.round((current - previous) / previous * 100);
 }
 
-//keeps the `limit - 1` biggest countries and sums the rest into one slice (a pie stays readable)
+//up to `limit - 1` biggest countries keep their own slice, the rest is summed into one (a pie stays readable)
 export function topCountries(countries: readonly CountryCount[], limit: number): { country: string | null, guests: number }[] {
-  if (countries.length <= limit) return [...countries];
+  if (countries.length < limit) return [...countries];
   const top = countries.slice(0, limit - 1);
   const rest = countries.slice(limit - 1).reduce((sum, c) => sum + c.guests, 0);
   return [...top, {country: null, guests: rest}];

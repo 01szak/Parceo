@@ -6,7 +6,7 @@
 </app-page-header>
 
 <div class="periods">
-  <mat-chip-listbox aria-label="Okres raportu" [value]="kind()" (change)="choosePeriod($event.value)" [hideSingleSelectionIndicator]="true">
+  <mat-chip-listbox aria-label="Okres raportu" [value]="kind()" (change)="choosePeriod($event)" [hideSingleSelectionIndicator]="true">
     @for (option of periods; track option.kind) {
       <mat-chip-option [value]="option.kind">{{ option.label }}</mat-chip-option>
     }

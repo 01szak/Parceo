@@ -68,4 +68,11 @@ describe('report helpers', () => {
     expect(topCountries(countries, 3)).toEqual([{country: 'PL', guests: 10}, {country: 'DE', guests: 5}, {country: null, guests: 3}]);
     expect(topCountries(countries, 5)).toEqual(countries);
   });
+
+  it('folds the fifth country when there are exactly five (only four have their own color)', () => {
+    const countries = [
+      {country: 'PL', guests: 10}, {country: 'DE', guests: 5}, {country: 'NL', guests: 2}, {country: 'CZ', guests: 1}, {country: 'SK', guests: 1},
+    ];
+    expect(topCountries(countries, 5)).toEqual([...countries.slice(0, 4), {country: null, guests: 1}]);
+  });
 });
