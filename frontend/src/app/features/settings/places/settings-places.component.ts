@@ -22,12 +22,23 @@ interface PlaceRow {
   ownPrice: boolean;
 }
 
-interface TypeCard {
+interface TypeRow {
   type: CamperPlaceTypeDto;
+  name: string;
+  priceValue: number;
   price: string;
   places: number;
   placesLabel: string;
 }
+
+const TYPE_COLUMNS: readonly ColumnDef[] = [
+  {key: 'name', label: 'Rodzaj', sortField: 'name'},
+  {key: 'placesLabel', label: 'Parcele', sortField: 'places'},
+  {key: 'price', label: 'Cena za noc', sortField: 'priceValue', align: 'end'},
+  {key: 'actions', label: 'Akcje', hideLabel: true},
+];
+
+const DEFAULT_TYPE_SORT: QuerySort = {field: 'name', direction: 'ASC'};
 
 const COLUMNS: readonly ColumnDef[] = [
   {key: 'index', label: 'Numer', sortField: 'index'},
@@ -57,7 +68,12 @@ export class SettingsPlacesComponent {
   protected readonly typesLoading = this.types.pageResource.isLoading;
   protected readonly placesLoading = this.camperPlaces.unpagedCamperPlaceResource.isLoading;
 
-  protected readonly typeCards = computed<TypeCard[]>(() => {
+  protected readonly typeColumns = TYPE_COLUMNS;
+  protected readonly typeSort = signal<QuerySort | null>(DEFAULT_TYPE_SORT);
+  protected readonly typePageIndex = signal(0);
+  protected readonly typePageSize = signal(25);
+
+  private readonly allTypeRows = computed<TypeRow[]>(() => {
     const counts = new Map<number, number>();
     this.camperPlaces.camperPlaces().forEach(p => {
       const id = p.camperPlaceType?.id;
@@ -65,9 +81,47 @@ export class SettingsPlacesComponent {
     });
     return (this.types.page().content as CamperPlaceTypeDto[]).map(type => {
       const places = counts.get(type.id!) ?? 0;
-      return {type, places, placesLabel: countLabel(places, 'parcela', 'parcele', 'parcel'), price: type.price === undefined ? '—' : formatPln(type.price)};
+      return {
+        type,
+        name: type.typeName ?? '',
+        priceValue: type.price ?? 0,
+        places,
+        placesLabel: countLabel(places, 'parcela', 'parcele', 'parcel'),
+        price: type.price === undefined ? '—' : formatPln(type.price),
+      };
     });
   });
+
+  private readonly sortedTypeRows = computed(() => {
+    const sort = this.typeSort() ?? DEFAULT_TYPE_SORT;
+    const direction = sort.direction === 'ASC' ? 1 : -1;
+    const value = (row: TypeRow) => row[sort.field as 'name' | 'places' | 'priceValue'];
+    return [...this.allTypeRows()].sort((a, b) => {
+      const x = value(a), y = value(b);
+      const order = typeof x === 'number' && typeof y === 'number'
+        ? x - y
+        : String(x).localeCompare(String(y), 'pl', {numeric: true});
+      return order * direction;
+    });
+  });
+
+  protected readonly typeTotal = computed(() => this.allTypeRows().length);
+  protected readonly typeRows = computed(() => {
+    const start = this.typePageIndex() * this.typePageSize();
+    return this.sortedTypeRows().slice(start, start + this.typePageSize());
+  });
+
+  protected readonly typeRowLabel = (row: TypeRow) => `Zmień rodzaj ${row.name}`;
+
+  protected changeTypeSort(sort: QuerySort | null): void {
+    this.typeSort.set(sort);
+    this.typePageIndex.set(0);
+  }
+
+  protected changeTypePage(page: TablePage): void {
+    this.typePageSize.set(page.pageSize);
+    this.typePageIndex.set(page.pageIndex);
+  }
 
   //the list is small (one camping), so sorting and paging happen in the browser
   protected readonly sort = signal<QuerySort | null>(DEFAULT_SORT);
@@ -126,13 +180,13 @@ export class SettingsPlacesComponent {
     this.forms.openCamperPlaceTypeFormPopup({camperPlaceType: type});
   }
 
-  protected deleteType(card: TypeCard): void {
+  protected deleteType(row: TypeRow): void {
     this.confirmation.openConfirmationPopup({
       title: 'Usunąć rodzaj parcel?',
-      message: `Rodzaj „${card.type.typeName}” zniknie z cennika.`,
+      message: `Rodzaj „${row.name}” zniknie z cennika.`,
       confirmLabel: 'Usuń',
       tone: 'danger',
-      action: () => this.types.delete(card.type.id!).subscribe(),
+      action: () => this.types.delete(row.type.id!).subscribe(),
     });
   }
 

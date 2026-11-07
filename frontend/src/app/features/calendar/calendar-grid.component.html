@@ -1,8 +1,8 @@
-<div class="scroll" [class.compact]="compact()">
+<div class="scroll" #scroller appDragScroll (scroll)="onScroll()">
   <div class="grid" role="grid" aria-label="Obłożenie parcel" [style.grid-template-columns]="gridColumns()">
 
     <div class="header-row" role="row">
-      <div class="corner" role="columnheader">Parcela</div>
+      <div class="corner" #corner role="columnheader">Parcela</div>
       @for (day of days(); track day.date; let i = $index) {
         <div class="day-header" role="columnheader" [style.grid-column]="dayColumn(i)"
              [class.weekend]="day.weekend" [class.today]="day.today" [class.week-start]="day.weekStart">
@@ -16,7 +16,7 @@
       <div class="row" role="row">
         <div class="place" role="rowheader">
           <span class="place-index">{{ row.place.index }}</span>
-          <span class="place-type">{{ row.place.camperPlaceType?.typeName }}</span>
+          <span class="place-type">{{ row.place.camperPlaceType.typeName }}</span>
         </div>
 
         @for (day of days(); track day.date; let i = $index) {

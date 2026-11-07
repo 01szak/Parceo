@@ -4,15 +4,15 @@ import {RESERVATION_CHIP_META, ReservationChipKind} from '@shared/domain/stay-st
 
 //a reservation status always shown as a word, an icon and a color, never the color alone
 @Component({
-  selector: 'app-status-chip',
-  imports: [MatIcon],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  host: {'[class]': '"chip tone-" + meta().tone'},
-  template: `
-    <mat-icon aria-hidden="true">{{ meta().icon }}</mat-icon>
-    <span>{{ meta().label }}</span>
-  `,
-  styles: `
+    selector: 'app-status-chip',
+    imports: [MatIcon],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    host: {'[class]': '"chip tone-" + meta().tone'},
+    template: `
+        <mat-icon aria-hidden="true">{{ meta().icon }}</mat-icon>
+        <span>{{ meta().label }}</span>
+    `,
+    styles: `
     :host {
       display: inline-flex;
       align-items: center;
@@ -38,6 +38,7 @@ import {RESERVATION_CHIP_META, ReservationChipKind} from '@shared/domain/stay-st
     :host(.tone-unpaid) { background: var(--res-unpaid-container); color: var(--res-on-unpaid-container); border-color: var(--res-unpaid); }
     :host(.tone-late) { background: var(--res-late-container); color: var(--res-on-late-container); border-color: var(--res-late); }
   `,
+    standalone: true
 })
 export class StatusChipComponent {
   public readonly kind = input.required<ReservationChipKind>();

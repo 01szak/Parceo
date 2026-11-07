@@ -65,29 +65,30 @@ const COLUMNS: readonly ColumnDef[] = [
 
 //the reservation list with its "Pokaż" views, filters, saved filters, search, sorting and pages
 @Component({
-  selector: 'app-reservations-table',
-  imports: [
-    ReactiveFormsModule,
-    MatFormField,
-    MatLabel,
-    MatPrefix,
-    MatInput,
-    MatIcon,
-    MatButton,
-    MatIconButton,
-    MatMenu,
-    MatMenuItem,
-    MatMenuTrigger,
-    MatMenuContent,
-    DataTableComponent,
-    CellDefDirective,
-    FilterBarComponent,
-    StatusChipComponent,
-    EmptyStateComponent,
-  ],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  templateUrl: './reservations-table.component.html',
-  styleUrl: './reservations-table.component.scss',
+    selector: 'app-reservations-table',
+    imports: [
+        ReactiveFormsModule,
+        MatFormField,
+        MatLabel,
+        MatPrefix,
+        MatInput,
+        MatIcon,
+        MatButton,
+        MatIconButton,
+        MatMenu,
+        MatMenuItem,
+        MatMenuTrigger,
+        MatMenuContent,
+        DataTableComponent,
+        CellDefDirective,
+        FilterBarComponent,
+        StatusChipComponent,
+        EmptyStateComponent,
+    ],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    templateUrl: './reservations-table.component.html',
+    styleUrl: './reservations-table.component.scss',
+    standalone: true
 })
 export class ReservationsTableComponent {
   private readonly reservations = inject(ReservationService);

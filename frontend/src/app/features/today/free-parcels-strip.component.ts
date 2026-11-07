@@ -112,6 +112,7 @@ export type StripRange = 14 | 30;
       font-variant-numeric: tabular-nums;
     }
   `,
+  standalone: true
 })
 export class FreeParcelsStripComponent {
   public readonly days = input.required<readonly DayAvailability[]>();

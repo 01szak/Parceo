@@ -39,11 +39,6 @@ cleanup() {
 }
 trap cleanup EXIT INT TERM
 
-command -v docker >/dev/null || { err "docker not found"; exit 1; }
-command -v node >/dev/null || { err "node not found"; exit 1; }
-command -v npm >/dev/null || { err "npm not found"; exit 1; }
-command -v java >/dev/null || { err "java not found"; exit 1; }
-
 # 1. Database
 log "Starting database (docker compose)..."
 docker compose -f "$BACKEND_DIR/compose.yaml" up -d database

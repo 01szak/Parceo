@@ -1,0 +1,125 @@
+# Parceo: one ignore file for the whole repository (backend/ and frontend/)
+
+### Local notes ###
+# the redesign plan and work log, kept only on this machine
+/PLAN.md
+
+### Local secrets ###
+# environment files (e.g. backend/.env with the Novu key) stay on the machine
+.env
+.env.*
+!.env.example
+
+### Backend (Spring Boot, Maven) ###
+backend/target/
+backend/build/
+backend/bin/
+backend/.mvn/wrapper/maven-wrapper.jar
+backend/.mvn/timing.properties
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+
+# Java
+*.class
+*.jar
+*.war
+*.nar
+*.ear
+*.ctxt
+.mtj.tmp/
+hs_err_pid*
+
+### Frontend (Angular) ###
+frontend/node_modules/
+frontend/dist/
+frontend/out-tsc/
+frontend/tmp/
+frontend/bazel-out/
+frontend/coverage/
+frontend/typings/
+frontend/.angular/cache/
+frontend/connect.lock
+frontend/libpeerconnection.log
+.sass-cache/
+npm-debug.log
+yarn-error.log
+testem.log
+
+### IDEs and editors ###
+# IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# VS Code: shared settings stay in the repository
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.history/
+
+# Eclipse / Spring Tool Suite
+.apt_generated/
+.classpath
+.factorypath
+.project
+.settings/
+.springBeans
+.sts4-cache/
+.metadata
+.loadpath
+.recommenders/
+.externalToolBuilders/
+*.launch
+
+# NetBeans
+nbproject/private/
+nbbuild/
+nbdist/
+.nb-gradle/
+
+# Other editors
+.c9/
+*.sublime-workspace
+*.sublime-project
+*.swp
+*.sw?
+*~
+.#*
+*#
+
+### Git merge leftovers ###
+*.orig
+*.BACKUP.*
+*.BASE.*
+*.LOCAL.*
+*.REMOTE.*
+*_BACKUP_*.txt
+*_BASE_*.txt
+*_LOCAL_*.txt
+*_REMOTE_*.txt
+
+### System files ###
+.DS_Store
+Thumbs.db
+ehthumbs.db
+ehthumbs_vista.db
+[Dd]esktop.ini
+$RECYCLE.BIN/
+*.stackdump
+*.lnk
+
+### Logs, archives and temporary files ###
+*.log
+*.tmp
+*.bak
+*.zip
+*.tar.gz
+*.rar
