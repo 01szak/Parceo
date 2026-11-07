@@ -13,11 +13,12 @@ export interface ChartBar {
 const TICK_COUNT = 4;
 const PLOT_HEIGHT = 240;
 
-//1, 2, 2.5 or 5 times a power of ten, so the axis reads 0 / 1 000 / 2 000 / 3 000
-function niceStep(max: number): number {
+//1, 2, 2.5 or 5 times a power of ten, so the axis reads 0 / 1 000 / 2 000 / 3 000;
+//whole numbers only, so small values (an empty period) do not read 0 / 0 / 0 / 0 / 1
+export function niceStep(max: number): number {
   const raw = max / TICK_COUNT;
   const magnitude = 10 ** Math.floor(Math.log10(raw));
-  return [1, 2, 2.5, 5, 10].find(m => m * magnitude >= raw)! * magnitude;
+  return [1, 2, 2.5, 5, 10].map(m => m * magnitude).find(step => step >= raw && Number.isInteger(step)) ?? 1;
 }
 
 /**
