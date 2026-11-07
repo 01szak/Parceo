@@ -11,6 +11,7 @@ import {ParceoLogoComponent} from '@shared/ui/logo/parceo-logo.component';
 import {EmployeeService} from '@core/services/openApiWrappers/EmployeeService';
 import {SessionService} from '@core/services/SessionService';
 import {ThemeMode, ThemeService} from '@core/services/ThemeService';
+import {OrganisationService} from '@core/services/OrganisationService';
 import {LOGIN_PATH} from '@core/guards/auth.guard';
 import {PRIMARY_NAV, SECONDARY_NAV} from './nav-items';
 
@@ -55,6 +56,9 @@ export class AppShellComponent implements OnInit {
   private readonly session = inject(SessionService);
   private readonly router = inject(Router);
   protected readonly theme = inject(ThemeService);
+  private readonly organisations = inject(OrganisationService);
+  protected readonly organisation = this.organisations.organisation;
+  protected readonly organisationInitials = this.organisations.initials;
 
   protected readonly primaryNav = PRIMARY_NAV;
   protected readonly secondaryNav = SECONDARY_NAV;

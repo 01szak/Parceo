@@ -37,6 +37,59 @@
   flex: 1;
 }
 
+// the camping this panel belongs to; opens Ustawienia › Kemping
+.camping {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+  padding: var(--space-2);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--mat-sys-outline-variant);
+  background: var(--mat-sys-surface-container-low);
+  color: var(--mat-sys-on-surface);
+  text-decoration: none;
+
+  &:hover {
+    background: color-mix(in srgb, var(--mat-sys-on-surface) 6%, var(--mat-sys-surface-container-low));
+  }
+}
+
+.camping-initials {
+  width: 40px;
+  height: 40px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-md);
+  background: var(--mat-sys-primary-container);
+  color: var(--mat-sys-on-primary-container);
+  font: var(--mat-sys-title-medium);
+  font-weight: 700;
+}
+
+.camping-name {
+  min-width: 0;
+  font: var(--mat-sys-title-small);
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.phone-camping {
+  margin-bottom: var(--space-4);
+  border: none;
+  background: transparent;
+  padding: 0;
+}
+
+.layout-rail .camping {
+  padding: 4px;
+  border: none;
+  background: transparent;
+}
+
 .nav-link {
   display: flex;
   align-items: center;

@@ -30,6 +30,9 @@ export class FormFactoryService {
       guestSearch: new FormControl<GuestDto | string | null>(null),
       guest: this.buildGuestForm(),
       isPaid: new FormControl<boolean>(false, {nonNullable: true}),
+      //filled with the price list's total; the reception may change it (e.g. a discount)
+      price: new FormControl<number | null>(null, [Validators.required, Validators.min(0)]),
+      notes: new FormControl<string>('', {nonNullable: true}),
     });
   }
 

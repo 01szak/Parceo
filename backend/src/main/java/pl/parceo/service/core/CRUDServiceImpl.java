@@ -47,9 +47,9 @@ public abstract class CRUDServiceImpl<T extends DbObject> implements CRUDService
 
     @Override
     public Page<T> findBy(Pageable pageable, SearchCriteria ...searchCriteria) {
-        if (pageable == null) {
-            pageable = Pageable.unpaged(UPDATED_AT_DESC);
-        }
+         if (pageable == null || pageable.isUnpaged()) {
+             pageable = Pageable.unpaged(UPDATED_AT_DESC);
+         }
 
         if (pageable.getSort().isEmpty()) {
             pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), UPDATED_AT_DESC);

@@ -3,6 +3,12 @@
   @if (layout() !== 'bar') {
     <nav class="side" aria-label="Menu główne">
       <app-parceo-logo class="logo" [showName]="layout() === 'drawer'" />
+      <a class="camping" routerLink="/ustawienia/kemping" [attr.aria-label]="'Kemping: ' + organisation().name">
+        <span class="camping-initials" aria-hidden="true">{{ organisationInitials() }}</span>
+        @if (layout() === 'drawer') {
+          <span class="camping-name">{{ organisation().name }}</span>
+        }
+      </a>
 
       @for (item of primaryNav; track item.path) {
         <ng-container *ngTemplateOutlet="navLink; context: {$implicit: item}" />
@@ -22,6 +28,12 @@
   }
 
   <main class="content">
+    @if (layout() === 'bar') {
+      <a class="camping phone-camping" routerLink="/ustawienia/kemping" [attr.aria-label]="'Kemping: ' + organisation().name">
+        <span class="camping-initials" aria-hidden="true">{{ organisationInitials() }}</span>
+        <span class="camping-name">{{ organisation().name }}</span>
+      </a>
+    }
     <router-outlet />
   </main>
 

@@ -16,6 +16,7 @@ import {ReservationService} from '@core/services/openApiWrappers/ReservationServ
 import {CamperPlaceService} from '@core/services/openApiWrappers/CamperPlaceService';
 import {GuestService} from '@core/services/openApiWrappers/GuestService';
 import {PopupConfirmationService} from '@core/services/PopupConfirmationService';
+import {NotificationService} from '@core/services/NotificationService';
 import {FormFactoryService, GuestMode} from '@shared/form/FormFactoryService';
 import {PopupFormContainer} from './popup-form-container.component';
 import {GuestFieldsComponent} from './guest-fields.component';
@@ -24,6 +25,7 @@ import {DateDelimiter, DateFormater} from '@shared/helper/DateFormater';
 import {firstConflict, nightsBetween, nightsLabel, stayLabel, withoutOwnStay} from '@shared/domain/stay-range';
 import {countryIso} from '@shared/domain/countries';
 import {formatPln} from '@shared/domain/money';
+import {noteKey, ReservationNotesApi} from '@core/mocks/reservation-notes.mock';
 import {CamperPlaceDto, GuestDto, ReservationDto} from '../../api';
 
 export type ReservationFormData = {
@@ -143,17 +145,53 @@ export class ReservationFormComponent {
 
   protected readonly placesLoading = computed(() => this.availableResource.isLoading());
 
-  protected readonly price = computed(() => this.priceResource.hasValue() ? this.priceResource.value() : null);
+  // ---------- price ----------
+  private readonly priceControl = this.form.get('price')!;
+  //the price list's total for the chosen stay and parcel
+  protected readonly listPrice = computed(() => this.priceResource.hasValue() ? this.priceResource.value() : null);
+  private readonly price = toSignal(
+    this.priceControl.valueChanges.pipe(startWith(null), map(() => this.priceControl.value as number | null)),
+    {initialValue: null}
+  );
+  //true while the price must not follow the price list: a saved reservation or a price typed by hand
+  private readonly keepPrice = signal(this.isUpdate);
+  //the stay the kept price belongs to; picking the same dates again keeps it
+  private keptStay: StayIso | undefined;
+
   protected readonly priceText = computed(() => {
     const price = this.price();
-    return price === null ? '—' : formatPln(price);
+    return price === null || price === undefined ? '—' : formatPln(price);
   });
+  protected readonly priceDifference = computed(() => {
+    const list = this.listPrice();
+    const price = this.price();
+    return list === null || price === null ? 0 : list - price;
+  });
+  protected readonly priceMissing = computed(() => this.price() === null || this.price() === undefined);
+  //under the price field: what the price list says and how far the price is from it
+  protected readonly listPriceHint = computed(() => {
+    const list = this.listPrice();
+    if (list === null) return 'Cena uzupełni się po wybraniu terminu i parceli.';
+    const difference = this.priceDifference();
+    if (Math.abs(difference) < 0.005) return `Z cennika: ${formatPln(list)}.`;
+    return `Z cennika: ${formatPln(list)}. ${difference > 0 ? 'Rabat' : 'Dopłata'} ${formatPln(Math.abs(difference))}.`;
+  });
+  //in the footer: "3 noce po cenie z cennika", "3 noce, z rabatem 40,00 zł"
   protected readonly priceHint = computed(() => {
     const stay = this.stayIso();
     if (!stay) return 'Wybierz termin i parcelę, żeby zobaczyć cenę.';
-    const nights = nightsBetween(stay.checkin, stay.checkout);
-    return this.price() === null ? nightsLabel(nights) : `${nightsLabel(nights)}, według cennika`;
+    const nights = nightsLabel(nightsBetween(stay.checkin, stay.checkout));
+    const difference = this.priceDifference();
+    if (this.listPrice() === null || Math.abs(difference) < 0.005) return `${nights}, według cennika`;
+    return `${nights}, ${difference > 0 ? 'z rabatem' : 'z dopłatą'} ${formatPln(Math.abs(difference))}`;
   });
+
+  private readonly notesApi = inject(ReservationNotesApi);
+  private readonly notifications = inject(NotificationService);
+  //where the note of the edited reservation is kept now (it moves with the parcel and the arrival date)
+  private readonly savedNoteKey = this.data.reservation?.camperPlace?.id !== undefined && this.data.reservation.checkin
+    ? noteKey(this.data.reservation.camperPlace.id, this.data.reservation.checkin)
+    : undefined;
 
   // ---------- guest ----------
   protected readonly guestMode = toSignal(
@@ -178,8 +216,35 @@ export class ReservationFormComponent {
       this.stay.markAsTouched();
     });
 
+    //a new price list total replaces the price, unless it was typed by hand or comes from the saved reservation
+    effect(() => {
+      const list = this.listPrice();
+      if (list !== null && !this.keepPrice()) this.priceControl.setValue(list);
+    });
+    //a different stay or parcel needs a new price, also when editing
+    //re-picking the dates clears the end for a moment, so only a complete stay that differs counts
+    this.stay.valueChanges.pipe(takeUntilDestroyed()).subscribe(() => {
+      const stay = this.toStayIso();
+      if (stay && (stay.checkin !== this.keptStay?.checkin || stay.checkout !== this.keptStay?.checkout)) this.keepPrice.set(false);
+    });
+    this.form.get('camperPlace')!.valueChanges.pipe(takeUntilDestroyed()).subscribe(() => this.keepPrice.set(false));
+
     this.setupGuestSearch();
     this.patchInitialValues();
+  }
+
+  protected onPriceTyped(): void {
+    this.keepPriceForCurrentStay();
+  }
+
+  private keepPriceForCurrentStay(): void {
+    this.keepPrice.set(true);
+    this.keptStay = this.toStayIso();
+  }
+
+  protected restoreListPrice(): void {
+    this.keepPrice.set(false);
+    this.priceControl.setValue(this.listPrice());
   }
 
   protected guestLabel(guest: GuestDto | string | null): string {
@@ -239,11 +304,18 @@ export class ReservationFormComponent {
       camperPlace: this.form.get('camperPlace')!.value,
       paid: this.form.get('isPaid')!.value,
       guest: this.guestPayload(),
+      //the backend recalculates the price on save for now, see PLAN.md
+      price: this.priceControl.value ?? undefined,
     };
 
     const request = this.isUpdate ? this.reservationService.update(payload) : this.reservationService.create(payload);
     this.saving.set(true);
-    request.pipe(finalize(() => this.saving.set(false))).subscribe(() => this.dialogRef.close());
+    request.pipe(finalize(() => this.saving.set(false))).subscribe(() => {
+      //the reservation is saved: close first, so a failing note never leaves a form that would save it twice
+      const notes = this.form.get('notes')!.value;
+      this.dialogRef.close();
+      this.saveNotes(payload, notes);
+    });
   };
 
   protected readonly confirmDelete = () => {
@@ -264,7 +336,19 @@ export class ReservationFormComponent {
 
   private isValid(): boolean {
     const guestValid = this.showGuestFields() ? this.guestGroup.valid : !!this.selectedGuest()?.id;
-    return this.stay.valid && this.form.get('camperPlace')!.valid && guestValid;
+    return this.stay.valid && this.form.get('camperPlace')!.valid && this.priceControl.valid && guestValid;
+  }
+
+  //MOCK: notes are kept in this browser until the reservation has a notes field (PLAN.md)
+  private saveNotes(payload: ReservationDto, notes: string): void {
+    const placeId = payload.camperPlace?.id;
+    if (placeId === undefined) return;
+    const failed = () => this.notifications.warning('Rezerwacja zapisana, ale nie udało się zapisać uwag.');
+    try {
+      this.notesApi.save(noteKey(placeId, payload.checkin), notes, this.savedNoteKey).subscribe({error: failed});
+    } catch {
+      failed();
+    }
   }
 
   private guestPayload(): GuestDto {
@@ -303,8 +387,12 @@ export class ReservationFormComponent {
         camperPlace: reservation.camperPlace,
         isPaid: !!reservation.paid,
         guestMode: 'existing',
+        price: reservation.price ?? null,
       });
+      //patching fires valueChanges; the saved price must stay until the user changes the stay or the parcel
+      this.keepPriceForCurrentStay();
       if (reservation.guest) this.selectGuest(reservation.guest);
+      if (this.savedNoteKey) this.notesApi.get(this.savedNoteKey).subscribe(notes => this.form.patchValue({notes}));
       return;
     }
     if (year !== undefined && month !== undefined && day !== undefined) {

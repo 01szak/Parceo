@@ -13,6 +13,7 @@ import {SideSheetComponent} from '@shared/ui/side-sheet/side-sheet.component';
       <ng-content />
       <div sheetFooter class="footer">
         <div class="summary"><ng-content select="[formSummary]" /></div>
+        <span class="spacer"></span>
         <button mat-button type="button" mat-dialog-close>Anuluj</button>
         <button mat-flat-button type="button" [disabled]="saveDisabled() || saving()" (click)="proceedAction()()">
           {{ saving() ? 'Zapisywanie…' : saveLabel() }}
@@ -36,6 +37,25 @@ import {SideSheetComponent} from '@shared/ui/side-sheet/side-sheet.component';
     .summary {
       flex: 1;
       min-width: 0;
+    }
+
+    .spacer {
+      flex: 1;
+    }
+
+    .summary:empty {
+      display: none;
+    }
+
+    @media (max-width: 599.98px) {
+      .footer {
+        flex-wrap: wrap;
+        justify-content: flex-end;
+      }
+
+      .summary {
+        flex-basis: 100%;
+      }
     }
   `,
 })
