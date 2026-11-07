@@ -44,14 +44,18 @@ export class TodayPageComponent {
 
   protected readonly arrivals = createPagedQuery<ReservationDto>(ResourceType.RESERVATION, {unpaged: true});
   protected readonly departures = createPagedQuery<ReservationDto>(ResourceType.RESERVATION, {unpaged: true});
-  protected readonly unpaid = createPagedQuery<ReservationDto>(ResourceType.RESERVATION, {unpaged: true, sort: {field: 'checkout', direction: 'ASC'}});
+  //an unpaged request sends no sort (the backend orders it by the last change), so the list is sorted here
+  protected readonly unpaid = createPagedQuery<ReservationDto>(ResourceType.RESERVATION, {unpaged: true});
   private readonly occupancy = createPagedQuery<ReservationDto>(ResourceType.RESERVATION, {unpaged: true});
 
   protected readonly stripRange = signal<StripRange>(14);
 
   protected readonly arrivalItems = computed(() => this.toItems(this.arrivals.page().content, r => this.stayDetails(r)));
   protected readonly departureItems = computed(() => this.toItems(this.departures.page().content, r => `Parcela ${r.camperPlace?.index}`));
-  protected readonly unpaidItems = computed(() => this.toItems(this.unpaid.page().content, r => this.paymentDetails(r), false));
+  //the earliest departure first: those guests have to pay soonest
+  protected readonly unpaidItems = computed(() => this.toItems(
+    [...this.unpaid.page().content].sort((a, b) => (a.checkout ?? '').localeCompare(b.checkout ?? '')),
+    r => this.paymentDetails(r), false));
 
   private readonly placeIds = computed(() => this.camperPlaces.camperPlaces().map(p => p.id!));
   private readonly stays = computed<Stay[]>(() => this.occupancy.page().content

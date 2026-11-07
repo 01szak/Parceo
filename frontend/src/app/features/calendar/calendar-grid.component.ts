@@ -187,7 +187,8 @@ export class CalendarGridComponent {
 
     const width = this.dayWidth();
     const visibleWidth = element.clientWidth - this.placeColumnWidth();
-    const firstIndex = Math.max(0, Math.floor(element.scrollLeft / width));
+    //clamped on both sides: the scroll position may still belong to a longer row of days
+    const firstIndex = Math.min(days.length - 1, Math.max(0, Math.floor(element.scrollLeft / width)));
     const lastIndex = Math.min(days.length - 1, Math.floor((element.scrollLeft + visibleWidth - 1) / width));
     const range = {first: days[firstIndex].date, last: days[lastIndex].date};
     if (range.first !== this.lastRange?.first || range.last !== this.lastRange?.last) {

@@ -25,9 +25,13 @@ export type FilterValues = Record<string, string>;
 //the value of a group that means "not filtered"
 const ANY = 'any';
 
+//above the button first (the table sits low on the page); below it when there is no room above.
+//The offset moves the popover away from the button: up when it is above, down when it is below.
 const POPOVER_POSITIONS: ConnectedPosition[] = [
-  {originX: 'start', originY: 'top', overlayX: 'start', overlayY: 'bottom', offsetY: 8},
-  {originX: 'end', originY: 'top', overlayX: 'end', overlayY: 'bottom', offsetY: 8},
+  {originX: 'start', originY: 'top', overlayX: 'start', overlayY: 'bottom', offsetY: -8},
+  {originX: 'end', originY: 'top', overlayX: 'end', overlayY: 'bottom', offsetY: -8},
+  {originX: 'start', originY: 'bottom', overlayX: 'start', overlayY: 'top', offsetY: 8},
+  {originX: 'end', originY: 'bottom', overlayX: 'end', overlayY: 'top', offsetY: 8},
 ];
 
 /**

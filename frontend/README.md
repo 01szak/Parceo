@@ -27,6 +27,7 @@ The user interface is in Polish; labels quoted below (e.g. „Dziś”, „Opła
 
 | Command | What it does |
 |---|---|
+| `npm ci` | installs the dependencies (run once after cloning and after `package-lock.json` changes) |
 | `npm start` | dev server on `http://localhost:4200`; `/api/*` requests go through the proxy (`src/proxy.conf.json`) to `http://localhost:8080` |
 | `npx ng build --configuration development` | build without optimisations |
 | `npm run build` | production build; **needs internet access**, because Angular downloads and inlines the Google fonts (Roboto, Material Symbols) |
@@ -98,7 +99,7 @@ Screens never call `HttpClient` or the functions from `src/app/api` directly. Th
 
 ## Reading data
 
-All reads are built on Angular's `rxResource`: a resource has `params` (signals) and a `stream` (the request). When any signal in `params` changes, the resource fetches again by itself and cancels the previous request.
+All reads are built on Angular's `rxResource`: a resource has `params` (signals) and a `stream` (the request). When any signal in `params` changes, the resource fetches again by itself and ignores the result of the previous request. The previous HTTP request itself is not cancelled: `ServiceFacade` wraps `Api.invoke()` (a Promise) in `from()`, so unsubscribing does not reach `HttpClient`.
 
 ### 1. Lists: `createPagedQuery()` (the recommended way)
 
@@ -106,11 +107,15 @@ All reads are built on Angular's `rxResource`: a resource has `params` (signals)
 
 ```ts
 export class TodayPageComponent {
-  protected readonly arrivals = createPagedQuery<ReservationDto>(ResourceType.RESERVATION, {pageSize: 6});
-  private readonly occupancy = createPagedQuery<ReservationDto>(ResourceType.RESERVATION, {unpaged: true});
+  private readonly today = inject(TodayService).today;
+  protected readonly arrivals = createPagedQuery<ReservationDto>(ResourceType.RESERVATION, {unpaged: true});
 
   constructor() {
-    this.arrivals.criteria.set([{key: 'checkin', operation: 'EQUALS', value: todayIso(), joinOperator: 'AND'}]);
+    //new criteria when the day changes at midnight; the query reloads by itself
+    effect(() => {
+      const today = this.today();
+      untracked(() => this.arrivals.criteria.set([{key: 'checkin', operation: 'EQUALS', value: today, joinOperator: 'AND'}]));
+    });
   }
 }
 ```

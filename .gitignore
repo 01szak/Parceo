@@ -4,6 +4,12 @@
 # the redesign plan and work log, kept only on this machine
 /PLAN.md
 
+### Local secrets ###
+# environment files (e.g. backend/.env with the Novu key) stay on the machine
+.env
+.env.*
+!.env.example
+
 ### Backend (Spring Boot, Maven) ###
 backend/target/
 backend/build/

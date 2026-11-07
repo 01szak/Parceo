@@ -110,12 +110,14 @@ export class CalendarPageComponent {
   constructor() {
     this.loader.connect(this.window, this.visibleDays);
 
-    //another number of days per block (settings loaded or changed): start again around today
+    //another number of days per block (settings loaded or changed): start again around today,
+    //also when the old window happens to divide by the new size (90 days → 10-day blocks would be 9 blocks)
+    let blockDays = untracked(this.visibleDays);
     effect(() => {
-      const blockDays = this.visibleDays();
-      untracked(() => {
-        if (this.window().days % blockDays !== 0) this.resetAroundToday();
-      });
+      const next = this.visibleDays();
+      if (next === blockDays) return;
+      blockDays = next;
+      untracked(() => this.resetAroundToday());
     });
   }
 

@@ -38,7 +38,7 @@ const ICONS: Record<TodayListTone, string> = {
         <mat-progress-bar mode="indeterminate" aria-label="Wczytywanie"/>
       }
     </div>
-    <div class="list-container">
+    <ul class="list-container">
         @for (item of items(); track item.reservation.id) {
           <li>
             <button type="button" class="row" (click)="open.emit(item)">
@@ -62,7 +62,7 @@ const ICONS: Record<TodayListTone, string> = {
             <li class="empty">{{ emptyText() }}</li>
           }
         }
-    </div>
+    </ul>
   `,
   styles: `
     :host {
@@ -125,15 +125,12 @@ const ICONS: Record<TodayListTone, string> = {
       height: 4px;
     }
 
+    /* about six rows are visible, the rest scrolls; a row with a wrapped name may be taller than 78px */
     .list-container {
       display: grid;
       grid-template-rows: repeat(6, auto);
       overflow-y: auto;
-      max-height:  calc(78px * 6);
-    }
-
-    ul {
-      height: 100%;
+      max-height: calc(78px * 6);
       margin: 0;
       padding: 0;
       list-style: none;
@@ -145,7 +142,6 @@ const ICONS: Record<TodayListTone, string> = {
       gap: var(--space-3);
       padding-right: 16px;
       border-top: 1px solid var(--mat-sys-outline-variant);
-      max-height: 78px;
     }
 
     .row {
