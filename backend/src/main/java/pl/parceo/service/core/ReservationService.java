@@ -53,16 +53,13 @@ public class ReservationService extends CRUDServiceImpl<Reservation> {
                 .checkout(checkout)
                 .camperPlace(camperPlace)
                 .guest(guest)
-                .price(calculator.calculate(camperPlace.getPrice(), checkin.datesUntil(checkout).count())) //TODO it can be passed in request
+                .price(calculator.calculate(camperPlace.getPrice(), checkin.datesUntil(checkout).count()))
                 .paid(reservationDto.paid() != null && reservationDto.paid())
                 .reservationStatus(status)
+                .notes(reservationDto.notes())
                 .creator(creator);
 
        return super.create(r.build());
-    }
-
-    public ReservationStatus getActuallReservationStatus(Reservation reservation) {
-        return getActuallReservationStatus(reservation.getCheckin(), reservation.getCheckout());
     }
 
     public ReservationStatus getActuallReservationStatus(LocalDate checkin, LocalDate checkout) {
@@ -99,7 +96,7 @@ public class ReservationService extends CRUDServiceImpl<Reservation> {
                 || !r.getCheckout().equals(checkout)
                 || !r.getCamperPlace().getIndex().equals(reservationDto.camperPlace().index());
 
-    //it is checked because of the constraints and reservations overlapping
+        //it is checked because of the constraints and reservations overlapping
         if (datesOrCpChanged) {
             validateDates(checkout, checkin, camperPlace.getId(), r.getId());
             r.setCheckin(checkin);
@@ -118,6 +115,7 @@ public class ReservationService extends CRUDServiceImpl<Reservation> {
 
         r.setGuest(guest);
         r.setPaid(reservationDto.paid());
+        r.setNotes(reservationDto.notes());
 
         return super.update(r);
     }

@@ -43,7 +43,12 @@ public class WebAppController {
         final var webAppUserName = SecurityContextHolder.getContext().getAuthentication().getName();
         final var webAppUSer = (User) userService.loadUserByUsername(webAppUserName);
         final var payload = new WebAppReservationPayload(
-                request.reservationDTO().toBuilder().creator(DtoMapper.getUserDTO(webAppUSer)).build(), request.locale());
+                request.reservationDTO().toBuilder()
+                        .creator(DtoMapper.getUserDTO(webAppUSer))
+                        .price(null) //sanity check :)
+                        .build(),
+                request.locale()
+        );
         final var task = Task.builder()
                 .targetId(UUID.randomUUID().toString())
                 .payload(payload)

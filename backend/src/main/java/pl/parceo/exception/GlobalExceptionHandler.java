@@ -11,10 +11,11 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    private static final String DEFAULT_MESSAGE_ERROR = "Wystąpił nieoczekiwany błąd";
 
     @ExceptionHandler(UserInputException.class)
     public ResponseEntity<String> handleValidationException(UserInputException ex) {
@@ -64,10 +65,17 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body("Nieprawidłowy format żądania");
     }
 
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<String> handleIllegalStateException(IllegalStateException ex) {
+        log.error(ex.getMessage(), ex);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(DEFAULT_MESSAGE_ERROR);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<String> handleUnexpectedException(Exception ex) {
         log.error("Unhandled exception!", ex);
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Wystąpił nieoczekiwany błąd");
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(DEFAULT_MESSAGE_ERROR);
     }
+
 
 }

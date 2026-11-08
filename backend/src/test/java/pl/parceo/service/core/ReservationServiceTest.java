@@ -106,13 +106,21 @@ public class ReservationServiceTest {
         final var checkout = LocalDate.now().plusDays(3);
         final var guestDto = createGuestDto(null);
         final var cpDto = createCamperPlaceDto(1, "1");
-        final var reservationDto = createReservationDto(null, checkin, checkout, guestDto, cpDto, false, null);
+        final var reservationDto = ReservationDTO.builder()
+                        .id(null)
+                        .checkin(checkin)
+                        .checkout(checkout)
+                        .guest(guestDto)
+                        .camperPlace(cpDto)
+                        .paid(false)
+                        .reservationStatus(null)
+                        .price(100D)
+                        .build();
 
         when(userService.loadUserByUsername(USERNAME)).thenReturn(defaultUser);
         when(camperPlaceService.findById(1)).thenReturn(defaultCamperPlace);
         when(camperPlaceService.hasOverlappingReservation(1, checkin, checkout, null)).thenReturn(false);
         when(guestService.create(guestDto)).thenReturn(defaultGuest);
-        when(calculator.calculate(DEFAULT_PRICE, 3L)).thenReturn(CALCULATED_PRICE);
         when(reservationRepository.save(any(Reservation.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         // When
@@ -142,13 +150,21 @@ public class ReservationServiceTest {
         final var checkout = LocalDate.now().plusDays(3);
         final var guestDto = createGuestDto(null);
         final var cpDto = createCamperPlaceDto(1, "1");
-        final var reservationDto = createReservationDto(null, checkin, checkout, guestDto, cpDto, false, null);
+        final var reservationDto = ReservationDTO.builder()
+                .id(null)
+                .checkin(checkin)
+                .checkout(checkout)
+                .guest(guestDto)
+                .camperPlace(cpDto)
+                .paid(false)
+                .reservationStatus(null)
+                .price(100D)
+                .build();
 
         when(userService.loadUserByUsername(USERNAME)).thenReturn(defaultUser);
         when(camperPlaceService.findById(1)).thenReturn(defaultCamperPlace);
         when(camperPlaceService.hasOverlappingReservation(1, checkin, checkout, null)).thenReturn(false);
         when(guestService.create(guestDto)).thenReturn(defaultGuest);
-        when(calculator.calculate(DEFAULT_PRICE, 2L)).thenReturn(CALCULATED_PRICE);
         when(reservationRepository.save(any(Reservation.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         // When
@@ -240,7 +256,16 @@ public class ReservationServiceTest {
         final var updatedGuestDto = createGuestDto(1);
         final var updatedGuest = Guest.builder().id(1).firstname("Adam").lastname("Nowak").build();
         final var cpDto = createCamperPlaceDto(1, "1");
-        final var updateDto = createReservationDto(10, checkin, checkout, updatedGuestDto, cpDto, true, ReservationStatus.COMING);
+        final var updateDto = ReservationDTO.builder()
+                .id(10)
+                .checkin(checkin)
+                .checkout(checkout)
+                .guest(updatedGuestDto)
+                .camperPlace(cpDto)
+                .paid(true)
+                .reservationStatus(ReservationStatus.COMING)
+                .price(100D)
+                .build();
 
         when(camperPlaceService.findById(1)).thenReturn(defaultCamperPlace);
         when(reservationRepository.findById(10)).thenReturn(Optional.of(existingReservation));
@@ -274,7 +299,16 @@ public class ReservationServiceTest {
         final var newCheckout = LocalDate.now().plusDays(4);
         final var cpDto = createCamperPlaceDto(1, "1");
         final var guestDto = createGuestDto(1);
-        final var updateDto = createReservationDto(10, newCheckin, newCheckout, guestDto, cpDto, true, null);
+        final var updateDto = ReservationDTO.builder()
+                .id(10)
+                .checkin(newCheckin)
+                .checkout(newCheckout)
+                .guest(guestDto)
+                .camperPlace(cpDto)
+                .paid(true)
+                .reservationStatus(null)
+                .price(existingReservation.getPrice().doubleValue())
+                .build();
 
         when(camperPlaceService.findById(1)).thenReturn(defaultCamperPlace);
         when(reservationRepository.findById(10)).thenReturn(Optional.of(existingReservation));
@@ -309,7 +343,16 @@ public class ReservationServiceTest {
         final var newCheckin = LocalDate.now().plusDays(1);
         final var newCheckout = LocalDate.now().plusDays(4);
         final var cpDto = createCamperPlaceDto(1, "1");
-        final var updateDto = createReservationDto(10, newCheckin, newCheckout, createGuestDto(1), cpDto, false, null);
+        final var updateDto = ReservationDTO.builder()
+                .id(10)
+                .checkin(newCheckin)
+                .checkout(newCheckout)
+                .guest(createGuestDto(1))
+                .camperPlace(cpDto)
+                .paid(false)
+                .reservationStatus(null)
+                .price(100D)
+                .build();
 
         when(camperPlaceService.findById(1)).thenReturn(defaultCamperPlace);
         when(reservationRepository.findById(10)).thenReturn(Optional.of(existingReservation));
@@ -333,7 +376,16 @@ public class ReservationServiceTest {
         final var invalidCheckin = LocalDate.now().plusDays(5);
         final var invalidCheckout = LocalDate.now().plusDays(2);
         final var cpDto = createCamperPlaceDto(1, "1");
-        final var updateDto = createReservationDto(10, invalidCheckin, invalidCheckout, createGuestDto(1), cpDto, false, null);
+        final var updateDto = ReservationDTO.builder()
+                .id(10)
+                .checkin(invalidCheckin)
+                .checkout(invalidCheckout)
+                .guest(createGuestDto(1))
+                .camperPlace(cpDto)
+                .paid(false)
+                .reservationStatus(null)
+                .price(100D)
+                .build();
 
         when(camperPlaceService.findById(1)).thenReturn(defaultCamperPlace);
         when(reservationRepository.findById(10)).thenReturn(Optional.of(existingReservation));
@@ -393,6 +445,7 @@ public class ReservationServiceTest {
                 .paid(paid)
                 .reservationStatus(ReservationStatus.COMING)
                 .creator(defaultUser)
+                .price(BigDecimal.valueOf(100D))
                 .build();
     }
 }

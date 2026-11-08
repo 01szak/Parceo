@@ -30,8 +30,6 @@ export class FormFactoryService {
       guestSearch: new FormControl<GuestDto | string | null>(null),
       guest: this.buildGuestForm(),
       isPaid: new FormControl<boolean>(false, {nonNullable: true}),
-      //filled with the price list's total; the reception may change it (e.g. a discount)
-      price: new FormControl<number | null>(null, [Validators.required, Validators.min(0)]),
       notes: new FormControl<string>('', {nonNullable: true}),
     });
   }
@@ -77,7 +75,7 @@ export class FormFactoryService {
       id: new FormControl<number | null>(null),
       index: new FormControl<string>('', [Validators.required]),
       camperPlaceType: new FormControl<CamperPlaceTypeDto | null>(null, [Validators.required]),
-      price: new FormControl<number>(0, [Validators.required, Validators.min(0)]),
+      price: new FormControl<number>(0, [Validators.required, Validators.min(1)]),
     });
   }
 
@@ -85,7 +83,7 @@ export class FormFactoryService {
     return this.fb.group({
       id: new FormControl<number | null>(null),
       typeName: new FormControl<string>('', [Validators.required]),
-      price: new FormControl<number>(0, [Validators.required, Validators.min(0)]),
+      price: new FormControl<number>(0, [Validators.required, Validators.min(1)]),
     });
   }
 }

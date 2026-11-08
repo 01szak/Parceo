@@ -173,3 +173,9 @@ CREATE TABLE IF NOT EXISTS system_task (
 ALTER TABLE organisation
     ADD COLUMN phone_number VARCHAR(50),
     ADD COLUMN email VARCHAR(255);
+
+-- changeset 01szak:reservation_notes
+-- preconditions onFail:MARK_RAN
+-- precondition-sql-check expectedResult:0 SELECT COUNT(*) FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'reservation' AND column_name = 'notes'
+ALTER TABLE reservation
+    ADD COLUMN notes VARCHAR(500) DEFAULT NULL;
