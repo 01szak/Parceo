@@ -110,23 +110,3 @@ mat-form-field {
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
-
-.price {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
-}
-
-.price-field {
-  max-width: 260px;
-}
-
-.price-hint {
-  margin: 0;
-  font: var(--mat-sys-body-medium);
-  color: var(--mat-sys-on-surface-variant);
-}
-
-.restore {
-  align-self: flex-start;
-}
