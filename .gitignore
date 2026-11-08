@@ -2,7 +2,7 @@
 
 ### Local notes ###
 # the redesign plan and work log, kept only on this machine
-/PLAN.md
+/local/
 
 ### Local secrets ###
 # environment files (e.g. backend/.env with the Novu key) stay on the machine

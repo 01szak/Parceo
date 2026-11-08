@@ -48,7 +48,7 @@ public class CamperPlaceService extends CRUDServiceImpl<CamperPlace> {
             if (cause instanceof SQLIntegrityConstraintViolationException sqlEx && DUPLICATE_ENTRY == sqlEx.getErrorCode()) {
                 throw new UserInputException("Parcela z podanym indexem już istnieje");
             }
-            throw new IllegalStateException();
+            throw new IllegalStateException(e);
         }
     }
 
@@ -83,7 +83,7 @@ public class CamperPlaceService extends CRUDServiceImpl<CamperPlace> {
             if (cause instanceof SQLIntegrityConstraintViolationException sqlEx && DUPLICATE_ENTRY == sqlEx.getErrorCode()) {
                 throw new UserInputException("Parcela z podanym indexem już istnieje");
             }
-            throw new IllegalStateException();
+            throw new IllegalStateException(e);
         }
     }
 
