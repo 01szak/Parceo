@@ -25,7 +25,6 @@ import {DateDelimiter, DateFormater} from '@shared/helper/DateFormater';
 import {firstConflict, nightsBetween, nightsLabel, stayLabel, withoutOwnStay} from '@shared/domain/stay-range';
 import {countryIso} from '@shared/domain/countries';
 import {formatPln} from '@shared/domain/money';
-import {noteKey, ReservationNotesApi} from '@core/mocks/reservation-notes.mock';
 import {CamperPlaceDto, GuestDto, ReservationDto} from '../../api';
 
 export type ReservationFormData = {
@@ -186,13 +185,6 @@ export class ReservationFormComponent {
     return `${nights}, ${difference > 0 ? 'z rabatem' : 'z dopłatą'} ${formatPln(Math.abs(difference))}`;
   });
 
-  private readonly notesApi = inject(ReservationNotesApi);
-  private readonly notifications = inject(NotificationService);
-  //where the note of the edited reservation is kept now (it moves with the parcel and the arrival date)
-  private readonly savedNoteKey = this.data.reservation?.camperPlace?.id !== undefined && this.data.reservation.checkin
-    ? noteKey(this.data.reservation.camperPlace.id, this.data.reservation.checkin)
-    : undefined;
-
   // ---------- guest ----------
   protected readonly guestMode = toSignal(
     this.form.get('guestMode')!.valueChanges.pipe(startWith(this.form.get('guestMode')!.value)),
@@ -206,6 +198,12 @@ export class ReservationFormComponent {
   protected readonly submitted = signal(false);
   //a save request is running; also blocks Enter in the form (ngSubmit)
   protected readonly saving = signal(false);
+
+  private readonly notesChanged = toSignal(
+    this.form.get('notes')!.valueChanges,
+    {initialValue: this.form.get('notes')!.value}
+  );
+  protected readonly notesLen = computed(() => this.notesChanged().length)
 
   constructor() {
     this.stay.addValidators(freeStayValidator(() => this.occupiedNights()));
@@ -304,6 +302,7 @@ export class ReservationFormComponent {
       camperPlace: this.form.get('camperPlace')!.value,
       paid: this.form.get('isPaid')!.value,
       guest: this.guestPayload(),
+      notes: this.form.get('notes')!.value,
       //the backend recalculates the price on save for now, see PLAN.md
       price: this.priceControl.value ?? undefined,
     };
@@ -311,10 +310,7 @@ export class ReservationFormComponent {
     const request = this.isUpdate ? this.reservationService.update(payload) : this.reservationService.create(payload);
     this.saving.set(true);
     request.pipe(finalize(() => this.saving.set(false))).subscribe(() => {
-      //the reservation is saved: close first, so a failing note never leaves a form that would save it twice
-      const notes = this.form.get('notes')!.value;
       this.dialogRef.close();
-      this.saveNotes(payload, notes);
     });
   };
 
@@ -337,18 +333,6 @@ export class ReservationFormComponent {
   private isValid(): boolean {
     const guestValid = this.showGuestFields() ? this.guestGroup.valid : !!this.selectedGuest()?.id;
     return this.stay.valid && this.form.get('camperPlace')!.valid && this.priceControl.valid && guestValid;
-  }
-
-  //MOCK: notes are kept in this browser until the reservation has a notes field (PLAN.md)
-  private saveNotes(payload: ReservationDto, notes: string): void {
-    const placeId = payload.camperPlace?.id;
-    if (placeId === undefined) return;
-    const failed = () => this.notifications.warning('Rezerwacja zapisana, ale nie udało się zapisać uwag.');
-    try {
-      this.notesApi.save(noteKey(placeId, payload.checkin), notes, this.savedNoteKey).subscribe({error: failed});
-    } catch {
-      failed();
-    }
   }
 
   private guestPayload(): GuestDto {
@@ -387,12 +371,12 @@ export class ReservationFormComponent {
         camperPlace: reservation.camperPlace,
         isPaid: !!reservation.paid,
         guestMode: 'existing',
+        notes: reservation.notes,
         price: reservation.price ?? null,
       });
       //patching fires valueChanges; the saved price must stay until the user changes the stay or the parcel
       this.keepPriceForCurrentStay();
       if (reservation.guest) this.selectGuest(reservation.guest);
-      if (this.savedNoteKey) this.notesApi.get(this.savedNoteKey).subscribe(notes => this.form.patchValue({notes}));
       return;
     }
     if (year !== undefined && month !== undefined && day !== undefined) {

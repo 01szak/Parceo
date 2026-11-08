@@ -60,6 +60,7 @@ public class ReservationService extends CRUDServiceImpl<Reservation> {
                 .price(BigDecimal.valueOf(price))
                 .paid(reservationDto.paid() != null && reservationDto.paid())
                 .reservationStatus(status)
+                .notes(reservationDto.notes())
                 .creator(creator);
 
        return super.create(r.build());
@@ -122,7 +123,7 @@ public class ReservationService extends CRUDServiceImpl<Reservation> {
 
         r.setGuest(guest);
         r.setPaid(reservationDto.paid());
-
+        r.setNotes(reservationDto.notes());
         return super.update(r);
     }
 

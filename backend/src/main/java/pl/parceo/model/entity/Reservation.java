@@ -1,5 +1,7 @@
 package pl.parceo.model.entity;
 
+import jakarta.annotation.Nullable;
+import org.hibernate.validator.constraints.Length;
 import pl.parceo.model.constant.ReservationStatus;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonFormat;
@@ -78,5 +80,10 @@ public class Reservation extends DbObject {
     @ManyToOne
     @JoinColumn(name = "creator_id")
     private User creator;
+
+    @Nullable
+    @Length(max = 500)
+    @Column(name = "notes")
+    private String notes;
 
 }

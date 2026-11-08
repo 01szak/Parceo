@@ -45,7 +45,8 @@ public class DtoMapper {
                 r.getPrice().doubleValue(),
                 r.getPaid(),
                 r.getReservationStatus(),
-                r.getCreator() != null ? getUserDTO(r.getCreator()) : null
+                r.getCreator() != null ? getUserDTO(r.getCreator()) : null,
+                r.getNotes()
         );
     }
 

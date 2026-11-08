@@ -107,8 +107,8 @@
       </mat-checkbox>
       <mat-form-field>
         <mat-label>Uwagi</mat-label>
-        <textarea matInput formControlName="notes" rows="3" placeholder="np. przyjazd późnym wieczorem"></textarea>
-        <mat-hint>Na razie zapisują się tylko w tej przeglądarce.</mat-hint>
+        <textarea matInput formControlName="notes" rows="3" placeholder="np. przyjazd późnym wieczorem" maxlength="500"></textarea>
+        <mat-hint>Długość notatki {{ notesLen() }}/500</mat-hint>
       </mat-form-field>
     </section>
   </form>
