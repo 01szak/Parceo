@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Objects;
@@ -48,12 +49,15 @@ public class ReservationService extends CRUDServiceImpl<Reservation> {
         final var status = Optional.ofNullable(reservationDto.reservationStatus())
                 .orElse(getActuallReservationStatus(checkin, checkout));
 
+        final var price = Optional.ofNullable(reservationDto.price())
+                .orElse(calculator.calculate(camperPlace.getPrice(), checkin.datesUntil(checkout).count()).doubleValue());
+
         final var r = Reservation.builder()
                 .checkin(checkin)
                 .checkout(checkout)
                 .camperPlace(camperPlace)
                 .guest(guest)
-                .price(calculator.calculate(camperPlace.getPrice(), checkin.datesUntil(checkout).count())) //TODO it can be passed in request
+                .price(BigDecimal.valueOf(price))
                 .paid(reservationDto.paid() != null && reservationDto.paid())
                 .reservationStatus(status)
                 .creator(creator);
