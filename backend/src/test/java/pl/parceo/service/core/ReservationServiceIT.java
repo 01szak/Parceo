@@ -155,6 +155,7 @@ public class ReservationServiceIT extends BaseIT {
                 .camperPlace(DtoMapper.getCamperPlaceDto(reservation.getCamperPlace()))
                 .paid(true)
                 .reservationStatus(ReservationStatus.COMING)
+                .price(reservation.getPrice().doubleValue())
                 .build();
 
         // When
@@ -189,6 +190,7 @@ public class ReservationServiceIT extends BaseIT {
                 .camperPlace(DtoMapper.getCamperPlaceDto(cp))
                 .paid(false)
                 .reservationStatus(ReservationStatus.COMING)
+                .price(res2.getPrice().doubleValue())
                 .build();
 
         assertThatThrownBy(() -> reservationService.update(conflictingUpdateDto))
@@ -221,6 +223,7 @@ public class ReservationServiceIT extends BaseIT {
                 .camperPlace(DtoMapper.getCamperPlaceDto(reservation.getCamperPlace()))
                 .paid(reservation.getPaid())
                 .reservationStatus(reservation.getReservationStatus())
+                .price(reservation.getPrice().doubleValue())
                 .build();
 
         reservationService.update(updatePayload);

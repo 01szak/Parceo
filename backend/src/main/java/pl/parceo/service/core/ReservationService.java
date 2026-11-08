@@ -11,7 +11,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Objects;
@@ -49,25 +48,18 @@ public class ReservationService extends CRUDServiceImpl<Reservation> {
         final var status = Optional.ofNullable(reservationDto.reservationStatus())
                 .orElse(getActuallReservationStatus(checkin, checkout));
 
-        final var price = Optional.ofNullable(reservationDto.price())
-                .orElse(calculator.calculate(camperPlace.getPrice(), checkin.datesUntil(checkout).count()).doubleValue());
-
         final var r = Reservation.builder()
                 .checkin(checkin)
                 .checkout(checkout)
                 .camperPlace(camperPlace)
                 .guest(guest)
-                .price(BigDecimal.valueOf(price))
+                .price(calculator.calculate(camperPlace.getPrice(), checkin.datesUntil(checkout).count()))
                 .paid(reservationDto.paid() != null && reservationDto.paid())
                 .reservationStatus(status)
                 .notes(reservationDto.notes())
                 .creator(creator);
 
        return super.create(r.build());
-    }
-
-    public ReservationStatus getActuallReservationStatus(Reservation reservation) {
-        return getActuallReservationStatus(reservation.getCheckin(), reservation.getCheckout());
     }
 
     public ReservationStatus getActuallReservationStatus(LocalDate checkin, LocalDate checkout) {
@@ -104,7 +96,7 @@ public class ReservationService extends CRUDServiceImpl<Reservation> {
                 || !r.getCheckout().equals(checkout)
                 || !r.getCamperPlace().getIndex().equals(reservationDto.camperPlace().index());
 
-    //it is checked because of the constraints and reservations overlapping
+        //it is checked because of the constraints and reservations overlapping
         if (datesOrCpChanged) {
             validateDates(checkout, checkin, camperPlace.getId(), r.getId());
             r.setCheckin(checkin);
@@ -124,6 +116,7 @@ public class ReservationService extends CRUDServiceImpl<Reservation> {
         r.setGuest(guest);
         r.setPaid(reservationDto.paid());
         r.setNotes(reservationDto.notes());
+
         return super.update(r);
     }
 
