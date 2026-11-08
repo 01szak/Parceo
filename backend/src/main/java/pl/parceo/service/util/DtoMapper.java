@@ -3,11 +3,13 @@ package pl.parceo.service.util;
 import pl.parceo.model.dto.CamperPlaceDTO;
 import pl.parceo.model.dto.CamperPlaceTypeDTO;
 import pl.parceo.model.dto.GuestDTO;
+import pl.parceo.model.dto.OrganisationDTO;
 import pl.parceo.model.dto.ReservationDTO;
 import pl.parceo.model.dto.UserDTO;
 import pl.parceo.model.entity.CamperPlace;
 import pl.parceo.model.entity.CamperPlaceType;
 import pl.parceo.model.entity.Guest;
+import pl.parceo.model.entity.Organisation;
 import pl.parceo.model.entity.Reservation;
 import pl.parceo.model.entity.User;
 import jakarta.validation.constraints.NotNull;
@@ -43,7 +45,8 @@ public class DtoMapper {
                 r.getPrice().doubleValue(),
                 r.getPaid(),
                 r.getReservationStatus(),
-                r.getCreator() != null ? getUserDTO(r.getCreator()) : null
+                r.getCreator() != null ? getUserDTO(r.getCreator()) : null,
+                r.getNotes()
         );
     }
 
@@ -64,6 +67,16 @@ public class DtoMapper {
             cpt.getId(),
             cpt.getTypeName(),
             cpt.getPrice()
+        );
+    }
+
+    public static OrganisationDTO getOrganisationDTO(@NotNull Organisation o) {
+        return new OrganisationDTO(
+                o.getId(),
+                o.getOrganisationName(),
+                o.getAddress(),
+                o.getPhoneNumber(),
+                o.getEmail()
         );
     }
 

@@ -1,42 +1,56 @@
-import {Component, inject, Type} from '@angular/core';
-import {MAT_DIALOG_DATA, MatDialogContent, MatDialogRef, MatDialogTitle} from '@angular/material/dialog';
-import {FormButtonsComponent} from '@shared/ui/buttons/form-buttons.component';
-import {CommonModule} from '@angular/common';
+import {ChangeDetectionStrategy, Component, inject, Type} from '@angular/core';
+import {MAT_DIALOG_DATA, MatDialogActions, MatDialogContent, MatDialogRef, MatDialogTitle} from '@angular/material/dialog';
+import {MatButton} from '@angular/material/button';
+import {NgComponentOutlet} from '@angular/common';
 
+export type ConfirmationTone = 'default' | 'danger';
+
+export interface ConfirmationData {
+  //a question, e.g. "Usunąć rezerwację?"
+  title?: string;
+  //one sentence on what exactly will happen
+  message?: string;
+  component?: Type<unknown>;
+  componentData?: Record<string, unknown>;
+  confirmLabel?: string;
+  cancelLabel?: string;
+  //'danger' paints the confirm button in the error color (deleting, overriding prices)
+  tone?: ConfirmationTone;
+  action: () => void;
+}
+
+const DEFAULT_TITLE = 'Zapisać zmiany?';
+const DEFAULT_CONFIRM_LABEL = 'Tak';
+const DEFAULT_CANCEL_LABEL = 'Anuluj';
 
 @Component({
   selector: 'app-popup-confirmation',
-  standalone: true,
   imports: [
-    CommonModule,
     MatDialogContent,
     MatDialogTitle,
-    FormButtonsComponent
+    MatDialogActions,
+    MatButton,
+    NgComponentOutlet,
   ],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './popup-confirmation.component.html',
   styleUrl: './popup-confirmation.component.css'
 })
 export class PopupConfirmationComponent {
-  readonly popupConfirmationRef = inject(MatDialogRef<PopupConfirmationComponent, ConfirmationData>);
-  readonly confirmationData = inject<ConfirmationData>(MAT_DIALOG_DATA);
+  private readonly dialogRef = inject(MatDialogRef<PopupConfirmationComponent>);
+  protected readonly data = inject<ConfirmationData>(MAT_DIALOG_DATA);
 
-  firstAction = () => this.close();
-  secondAction = () => {
-    this.confirmationData.action();
-    this.firstAction();
+  protected readonly title = this.data.title ?? DEFAULT_TITLE;
+  protected readonly confirmLabel = this.data.confirmLabel ?? DEFAULT_CONFIRM_LABEL;
+  protected readonly cancelLabel = this.data.cancelLabel ?? DEFAULT_CANCEL_LABEL;
+  protected readonly isDanger = this.data.tone === 'danger';
+
+  protected confirm(): void {
+    this.data.action();
+    this.close();
   }
 
-  protected defaultTittle: string = "Zatwierdź zmiany";
-
-  close() {
-    this.popupConfirmationRef.close();
+  protected close(): void {
+    this.dialogRef.close();
   }
-}
-
-export interface ConfirmationData {
-  title?: string | 'Zatwierdź zmiany';
-  message?: string;
-  component?: Type<any>;
-  componentData?: Record<string, any>;
-  action: () => void;
 }

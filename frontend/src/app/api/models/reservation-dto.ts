@@ -11,6 +11,7 @@ export interface ReservationDto {
   creator?: UserDto;
   guest: GuestDto;
   id?: number;
+  notes?: string;
   paid: boolean;
   price?: number;
   reservationStatus?: 'EXPIRED' | 'ACTIVE' | 'COMING' | 'UNVERIFIED' | 'VERIFIED';

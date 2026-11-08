@@ -1,48 +1,29 @@
 import {inject, Injectable} from '@angular/core';
-import {MatDialog} from '@angular/material/dialog';
+import {SideSheetService} from '@core/services/SideSheetService';
 import {ReservationFormComponent, ReservationFormData} from '@shared/form/reservation-form.component';
 import {GuestFormComponent, GuestFormData} from '@shared/form/guest-form.component';
 import {CamperPlaceFormComponent, CamperPlaceFormData} from '@shared/form/camper-place-form.component';
 import {CamperPlaceTypeFormComponent, CamperPlaceTypeFormData} from '@shared/form/camper-place-type-form.component';
 
+//every edit form of the app opens the same way: as a side sheet
 @Injectable({ providedIn: 'root' })
 export class PopupFormService {
 
-  private readonly popupForm = inject(MatDialog);
+  private readonly sideSheet = inject(SideSheetService);
 
   openReservationFormPopup(reservationFd?: ReservationFormData) {
-    return this.popupForm.open(ReservationFormComponent, {
-      data: reservationFd,
-      panelClass: 'popupForm',
-      width: '450px',
-      maxWidth: '90vw'
-    });
+    return this.sideSheet.open(ReservationFormComponent, reservationFd);
   }
 
   openGuestFormPopup(guestFd?: GuestFormData) {
-    return this.popupForm.open(GuestFormComponent, {
-      data: guestFd,
-      panelClass: 'popupForm',
-      width: '450px',
-      maxWidth: '90vw'
-    });
+    return this.sideSheet.open(GuestFormComponent, guestFd);
   }
 
   openCamperPlaceFormPopup(camperPlaceFd?: CamperPlaceFormData) {
-    return this.popupForm.open(CamperPlaceFormComponent, {
-      data: camperPlaceFd,
-      panelClass: 'popupForm',
-      width: '450px',
-      maxWidth: '90vw'
-    });
+    return this.sideSheet.open(CamperPlaceFormComponent, camperPlaceFd);
   }
 
   openCamperPlaceTypeFormPopup(camperPlaceTypeFd?: CamperPlaceTypeFormData) {
-    return this.popupForm.open(CamperPlaceTypeFormComponent, {
-      data: camperPlaceTypeFd,
-      panelClass: 'popupForm',
-      width: '450px',
-      maxWidth: '90vw'
-    });
+    return this.sideSheet.open(CamperPlaceTypeFormComponent, camperPlaceTypeFd);
   }
 }

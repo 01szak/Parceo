@@ -5,10 +5,10 @@ import { MatFormField, MatLabel } from '@angular/material/form-field';
 import { MatInput } from '@angular/material/input';
 import { NgTemplateOutlet } from '@angular/common';
 import { PopupFormContainer } from './popup-form-container.component';
-import { CamperPlaceTypeService } from '@core/services/openApiWrappers/CamperPlaceTypeService';
+import { CamperPlaceTypeService } from '@core/services/openapiwrappers/CamperPlaceTypeService';
 import { CamperPlaceTypeDto } from '../../api/models/camper-place-type-dto';
 import { FormFactoryService } from '@shared/form/FormFactoryService';
-import { CamperPlaceService } from '@core/services/openApiWrappers/CamperPlaceService';
+import { CamperPlaceService } from '@core/services/openapiwrappers/CamperPlaceService';
 import { PopupConfirmationService } from '@core/services/PopupConfirmationService';
 import { CamperPlacesWithUniquePricesComponent } from '@shared/popups/confirmation/camper-places-with-unique-prices.component';
 import { take } from 'rxjs';
@@ -28,21 +28,21 @@ export type CamperPlaceTypeFormData = { camperPlaceType?: CamperPlaceTypeDto };
   standalone: true,
   styles: `
     form {
-      color: var(--text-primary);
       display: flex;
       flex-direction: column;
+      gap: var(--space-4);
     }
   `,
   template: `
     <ng-template #formFields>
       <form [formGroup]="formGroup">
         <mat-form-field>
-          <mat-label>Nazwa Typu</mat-label>
+          <mat-label>Nazwa rodzaju</mat-label>
           <input type="text" matInput formControlName="typeName">
         </mat-form-field>
 
         <mat-form-field>
-          <mat-label>Cena</mat-label>
+          <mat-label>Cena za noc (zł)</mat-label>
           <input type="number" matInput formControlName="price">
         </mat-form-field>
       </form>
@@ -73,10 +73,16 @@ export class CamperPlaceTypeFormComponent implements OnInit {
   private readonly fd: CamperPlaceTypeFormData = inject<CamperPlaceTypeFormData>(MAT_DIALOG_DATA, { optional: true }) || {};
 
   protected isUpdate = !!this.fd?.camperPlaceType;
-  protected formTitle = this.isUpdate ? 'Edytuj Typ' : 'Nowy Typ';
+  protected formTitle = this.isUpdate ? 'Rodzaj parcel' : 'Nowy rodzaj parcel';
 
   protected deleteAction = this.isUpdate ? () => {
-    this.camperPlaceTypeService.delete(this.fd.camperPlaceType!.id!).subscribe(() => this.dialogRef?.close());
+    this.confirmationService.openConfirmationPopup({
+      title: 'Usunąć rodzaj parcel?',
+      message: `Rodzaj „${this.fd.camperPlaceType!.typeName}” zniknie z cennika.`,
+      confirmLabel: 'Usuń',
+      tone: 'danger',
+      action: () => this.camperPlaceTypeService.delete(this.fd.camperPlaceType!.id!).subscribe(() => this.dialogRef?.close()),
+    });
   } : null;
 
   ngOnInit() {
@@ -103,8 +109,9 @@ export class CamperPlaceTypeFormComponent implements OnInit {
       this.confirmPriceChange(payload);
     } else if (original.typeName !== payload.typeName) {
       this.confirmationService.openConfirmationPopup({
-        title: 'Zmiana Nazwy',
-        message: 'Zmiana nazwy spowoduje zmianę dla wszystkich parcel przypisanych do tego typu. Czy chcesz kontynuować?',
+        title: 'Zmienić nazwę rodzaju?',
+        message: 'Nowa nazwa pojawi się przy wszystkich parcelach tego rodzaju.',
+        confirmLabel: 'Zmień nazwę',
         action: () => this.save(payload)
       });
     } else {
@@ -116,8 +123,9 @@ export class CamperPlaceTypeFormComponent implements OnInit {
     this.camperPlaceService.getCamperPlacesWithUniquePriceAndCamperTypeId(payload.id!).pipe(take(1)).subscribe(places => {
       const selectedIds: number[] = [];
       this.confirmationService.openConfirmationPopup({
-        title: 'Zmiana Ceny',
-        message: 'Zmiana ceny typu spowoduje nadpisanie wszystkich parcel, które ten typ posiadają. Jeżeli chcesz nadpisać również te z własną ceną, zaznacz je poniżej:',
+        title: 'Zmienić cenę rodzaju?',
+        message: 'Nowa cena obejmie wszystkie parcele tego rodzaju. Parcele z własną ceną zachowają ją, chyba że zaznaczysz je poniżej.',
+        confirmLabel: 'Zmień cenę',
         component: CamperPlacesWithUniquePricesComponent,
         componentData: {
           rows: {[payload.id!]: places},

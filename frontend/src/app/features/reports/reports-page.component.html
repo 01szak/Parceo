@@ -1,0 +1,117 @@
+<app-page-header title="Raporty">
+  <button mat-stroked-button type="button" (click)="downloadCsv()" [disabled]="loading() || failed() || waitingForDates()">
+    <mat-icon>download</mat-icon>
+    Pobierz do Excela (CSV)
+  </button>
+</app-page-header>
+
+<div class="periods">
+  <mat-chip-listbox aria-label="Okres raportu" [value]="kind()" (change)="choosePeriod($event)" [hideSingleSelectionIndicator]="true">
+    @for (option of periods; track option.kind) {
+      <mat-chip-option [value]="option.kind">{{ option.label }}</mat-chip-option>
+    }
+  </mat-chip-listbox>
+  @if (kind() === 'custom') {
+    <app-date-range-field class="custom-range" label="Okres raportu" [group]="customRange" />
+  }
+</div>
+
+<div class="progress">
+  @if (loading()) {
+    <mat-progress-bar mode="indeterminate" aria-label="Wczytywanie" />
+  }
+</div>
+
+@if (failed()) {
+  <app-empty-state icon="cloud_off" title="Nie udało się wczytać raportu."
+                   message="Sprawdź połączenie z internetem i odśwież stronę." />
+} @else if (waitingForDates()) {
+  <app-empty-state icon="date_range" title="Wybierz okres raportu."
+                   message="Podaj datę początkową i końcową w polu powyżej." />
+} @else {
+  <section class="summary" aria-live="polite">
+    <p>{{ summary().revenue }} {{ summary().occupancy }}</p>
+  </section>
+
+  <div class="tiles">
+    @for (tile of tiles(); track tile.label) {
+      <div class="tile">
+        <span class="tile-label">{{ tile.label }}</span>
+        <span class="tile-value">{{ tile.value }}</span>
+        <span class="tile-note">{{ tile.note }}</span>
+      </div>
+    }
+  </div>
+
+  <section class="card" aria-labelledby="chart-title">
+    <div class="card-head">
+      <h2 id="chart-title">{{ chartTitle() }}</h2>
+      <span class="hint">Najedź na słupek, żeby zobaczyć kwotę</span>
+    </div>
+    <app-bar-chart [bars]="chartBars()" [label]="chartTitle()" [formatTick]="formatAxis" />
+  </section>
+
+  <div class="two-columns">
+    <section class="card" aria-labelledby="occupancy-title">
+      <h2 id="occupancy-title">Obłożenie według rodzaju parceli</h2>
+      @for (type of typeRows(); track type.typeId) {
+        <div class="meter-row">
+          <span class="meter-label">{{ type.typeName }}</span>
+          <span class="meter" role="meter" [attr.aria-valuenow]="type.occupancyPercent" aria-valuemin="0" aria-valuemax="100"
+                [attr.aria-label]="type.typeName">
+            <span class="meter-fill" [style.width.%]="type.occupancyPercent"></span>
+          </span>
+          <span class="meter-value">{{ type.occupancyPercent }}%</span>
+        </div>
+      } @empty {
+        <p class="hint">Brak rodzajów parcel.</p>
+      }
+    </section>
+
+    <section class="card" aria-labelledby="countries-title">
+      <h2 id="countries-title">Skąd są goście</h2>
+      @if (countrySlices().length) {
+        <app-donut-chart [slices]="countrySlices()" [valueLabel]="guestsCount" totalLabel="gości w tym okresie" />
+      } @else {
+        <p class="hint">W tym okresie nie było gości.</p>
+      }
+    </section>
+  </div>
+
+  <section class="card" aria-labelledby="revenue-title">
+    <h2 id="revenue-title">Przychód według rodzaju parceli</h2>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th scope="col">Rodzaj parceli</th>
+            <th scope="col" class="end">Parcele</th>
+            <th scope="col" class="end">Sprzedane noce</th>
+            <th scope="col" class="end">Średnio za noc</th>
+            <th scope="col" class="end">Przychód</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (type of typeRows(); track type.typeId) {
+            <tr>
+              <th scope="row">{{ type.typeName }}</th>
+              <td class="end">{{ type.places }}</td>
+              <td class="end">{{ type.nights }}</td>
+              <td class="end">{{ type.averageText }}</td>
+              <td class="end strong">{{ type.revenueText }}</td>
+            </tr>
+          }
+        </tbody>
+        <tfoot>
+          <tr>
+            <th scope="row">Razem</th>
+            <td class="end">{{ totals().places }}</td>
+            <td class="end">{{ totals().nights }}</td>
+            <td class="end">{{ totals().average }}</td>
+            <td class="end">{{ totals().revenue }}</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </section>
+}

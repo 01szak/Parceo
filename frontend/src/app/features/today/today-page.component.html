@@ -1,0 +1,45 @@
+<div class="top">
+  <section class="summary" aria-labelledby="summary-title">
+    <p class="date">{{ dateLabel() }}</p>
+    @if (failed()) {
+      <h1 id="summary-title">Nie udało się wczytać danych na dziś.</h1>
+      <p class="lead">Sprawdź połączenie z internetem i odśwież stronę.</p>
+    } @else if (!loadedOnce()) {
+      <h1 id="summary-title">Wczytuję dane na dziś…</h1>
+    } @else {
+      <h1 id="summary-title">{{ arrivalsText() }}</h1>
+      <p class="lead">
+        Wolnych parcel na noc: <strong>{{ freeTonight() }} z {{ totalPlaces() }}</strong>. {{ unpaidText() }}
+      </p>
+    }
+  </section>
+  <button mat-flat-button type="button" class="new" (click)="newReservation()">
+    <mat-icon>add</mat-icon>
+    Nowa rezerwacja
+  </button>
+</div>
+
+<div class="cards">
+  <app-today-list-card title="Przyjazdy" tone="arrive"
+                       [items]="arrivalItems()" [count]="arrivals.page().totalElements" [loading]="arrivals.loading()" [failed]="arrivals.failed()"
+                       emptyText="Dziś nikt nie przyjeżdża."
+                       (open)="openReservation($event)" />
+  <app-today-list-card title="Wyjazdy" tone="leave"
+                       [items]="departureItems()" [count]="departures.page().totalElements" [loading]="departures.loading()" [failed]="departures.failed()"
+                       emptyText="Dziś nikt nie wyjeżdża."
+                       (open)="openReservation($event)" />
+  <app-today-list-card title="Do zapłaty" tone="unpaid"
+                       [items]="unpaidItems()" [count]="unpaid.page().totalElements" [loading]="unpaid.loading()" [failed]="unpaid.failed()"
+                       emptyText="Wszystko opłacone." actionLabel="Opłać"
+                       (open)="openReservation($event)" (action)="markPaid($event)" />
+</div>
+
+@if (!failed()) {
+  <app-free-parcels-strip [days]="availability()" [range]="stripRange()"
+                          (rangeChange)="stripRange.set($event)" (daySelected)="showFreeParcels($event)" />
+}
+
+<section class="reservations" aria-labelledby="reservations-title">
+  <h2 id="reservations-title">Rezerwacje</h2>
+  <app-reservations-table />
+</section>

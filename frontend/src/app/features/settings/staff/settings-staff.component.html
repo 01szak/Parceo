@@ -1,0 +1,34 @@
+<section class="card" aria-labelledby="me-title">
+  <h2 id="me-title">Moje konto</h2>
+  @if (me(); as me) {
+    <dl>
+      <div><dt>Nazwa użytkownika</dt><dd>{{ me.username }}</dd></div>
+      <div><dt>Email</dt><dd>{{ me.email }}</dd></div>
+      <div><dt>Rola</dt><dd>{{ myRole() }}</dd></div>
+    </dl>
+  } @else {
+    <p class="lead">Wczytuję dane konta…</p>
+  }
+  <div class="actions">
+    <button mat-stroked-button type="button" class="danger" (click)="logout()">
+      <mat-icon>logout</mat-icon>
+      Wyloguj się
+    </button>
+  </div>
+</section>
+
+@if(isOwner()) {
+  <section class="card" aria-labelledby="staff-title">
+    <header>
+      <div>
+        <h2 id="staff-title">Pracownicy</h2>
+        <p class="lead">Pracownicy organizacji</p>
+      </div>
+      <button mat-flat-button type="button" class="tonal" (click)="createAppUser()">
+        <mat-icon>person_add</mat-icon>
+        Utwórz konto pracownika
+      </button>
+    </header>
+
+  </section>
+}

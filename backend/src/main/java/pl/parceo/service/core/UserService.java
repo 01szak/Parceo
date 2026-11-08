@@ -5,11 +5,13 @@ import pl.parceo.model.entity.User;
 import pl.parceo.repository.CRUDRepository;
 import pl.parceo.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -27,6 +29,15 @@ public class UserService extends CRUDServiceImpl<User> implements UserDetailsSer
         }
 
         return user.get();
+    }
+
+    /**
+     * @return the user who sent the current request (read from {@link SecurityContextHolder})
+     */
+    public User getLoggedInUser() {
+        final var authentication = SecurityContextHolder.getContext().getAuthentication();
+        Objects.requireNonNull(authentication, "Unauthorized call detected");
+        return (User) loadUserByUsername(authentication.getName());
     }
 
     public Optional<User> findWebAppUser(int organisationId) {

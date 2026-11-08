@@ -1,11 +1,29 @@
-import {Injectable} from '@angular/core';
+import {Injectable, signal} from '@angular/core';
+import {JwtHelperService} from '@auth0/angular-jwt';
 
 @Injectable({providedIn: 'root'})
 export class SessionService {
   private readonly TOKEN_KEY = 'jwtToken';
+  private readonly currentToken = signal(sessionStorage.getItem(this.TOKEN_KEY));
+
+  //the stored token as a signal: data of the logged-in user reloads after login and clears after logout
+  public readonly token = this.currentToken.asReadonly();
+  private readonly jwt = new JwtHelperService();
+
+  //a stored token that can still be used; a malformed token counts as logged out
+  isAuthenticated(): boolean {
+    const token = this.getToken();
+    if (!token) return false;
+    try {
+      return !this.jwt.isTokenExpired(token);
+    } catch {
+      return false;
+    }
+  }
 
   setToken(token: string): void {
     sessionStorage.setItem(this.TOKEN_KEY, token);
+    this.currentToken.set(token);
   }
 
   getToken(): string | null {
@@ -14,6 +32,7 @@ export class SessionService {
 
   clear(): void {
     sessionStorage.removeItem(this.TOKEN_KEY);
+    this.currentToken.set(null);
   }
 
   getRole(): string | null {

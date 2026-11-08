@@ -1,0 +1,99 @@
+<section class="types" aria-labelledby="types-title">
+  <app-data-table
+    [columns]="typeColumns"
+    [rows]="typeRows()"
+    [total]="typeTotal()"
+    [pageIndex]="typePageIndex()"
+    [pageSize]="typePageSize()"
+    [sort]="typeSort()"
+    [loading]="typesLoading()"
+    [rowLabel]="typeRowLabel"
+    (sortChange)="changeTypeSort($event)"
+    (pageChange)="changeTypePage($event)"
+    (rowClick)="editType($event.type)">
+
+    <header tableToolbar class="places-toolbar">
+      <div>
+        <h2 id="types-title">Rodzaje parcel i ceny</h2>
+        <p class="lead">Cena rodzaju obowiązuje dla wszystkich jego parcel, chyba że parcela ma własną cenę.</p>
+      </div>
+      <button mat-flat-button type="button" class="tonal" (click)="addType()">
+        <mat-icon>add</mat-icon>
+        Dodaj rodzaj
+      </button>
+    </header>
+
+    <ng-template appCell="name" let-row>
+      <strong>{{ row.name }}</strong>
+    </ng-template>
+
+    <ng-template appCell="actions" let-row>
+      <span class="actions">
+        <button mat-icon-button type="button" (click)="editType(row.type)"
+                [attr.aria-label]="'Zmień rodzaj ' + row.name">
+          <mat-icon>edit</mat-icon>
+        </button>
+        <span [matTooltip]="row.places ? 'Najpierw przenieś parcele do innego rodzaju.' : ''">
+          <button mat-icon-button type="button" class="danger" [disabled]="row.places > 0"
+                  (click)="deleteType(row)" [attr.aria-label]="'Usuń rodzaj ' + row.name">
+            <mat-icon>delete</mat-icon>
+          </button>
+        </span>
+      </span>
+    </ng-template>
+
+    <app-empty-state tableEmpty icon="grid_view" title="Nie ma jeszcze rodzajów parcel."
+                     message="Dodaj pierwszy rodzaj, np. „Kamper, prąd” z ceną za noc." />
+  </app-data-table>
+</section>
+
+<section class="places" aria-labelledby="places-title">
+  <app-data-table
+    [columns]="columns"
+    [rows]="rows()"
+    [total]="total()"
+    [pageIndex]="pageIndex()"
+    [pageSize]="pageSize()"
+    [sort]="sort()"
+    [loading]="placesLoading()"
+    [rowLabel]="placeRowLabel"
+    (sortChange)="changeSort($event)"
+    (pageChange)="changePage($event)"
+    (rowClick)="editPlace($event)">
+
+    <header tableToolbar class="places-toolbar">
+      <h2 id="places-title">Parcele</h2>
+      <button mat-flat-button type="button" class="tonal" (click)="addPlace()">
+        <mat-icon>add</mat-icon>
+        Dodaj parcelę
+      </button>
+    </header>
+
+    <ng-template appCell="index" let-row>
+      <strong>Parcela {{ row.index }}</strong>
+    </ng-template>
+
+    <ng-template appCell="price" let-row>
+      {{ row.price }}
+      @if (row.ownPrice) {
+        <span class="own-price">własna cena</span>
+      }
+    </ng-template>
+
+    <ng-template appCell="actions" let-row>
+      <span class="actions">
+        <button mat-icon-button type="button" (click)="editPlace(row)"
+                [attr.aria-label]="'Zmień parcelę ' + row.index">
+          <mat-icon>edit</mat-icon>
+        </button>
+        <button mat-icon-button type="button" class="danger" (click)="deletePlace(row)"
+                [attr.aria-label]="'Usuń parcelę ' + row.index">
+          <mat-icon>delete</mat-icon>
+        </button>
+      </span>
+    </ng-template>
+
+    <app-empty-state tableEmpty icon="grid_view" title="Nie ma jeszcze parcel."
+                     message="Dodaj parcele, żeby przyjmować na nie rezerwacje." />
+  </app-data-table>
+</section>

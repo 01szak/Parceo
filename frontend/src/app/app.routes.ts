@@ -1,50 +1,48 @@
 import {Routes} from '@angular/router';
 import {LoginComponent} from '@features/auth/login.component';
-import {RegisterComponent} from '@features/auth/register.component';
-import {StatisticsPage} from '@features/statistics/statistics-page/statistics-page';
-import {GuestPage} from '@features/guests/guest-page/guest-page.component';
-import {ReservationPage} from '@features/reservations/table/reservation-page';
-import {AdminPageComponent} from '@features/main-page/admin-page.component';
-import {CalendarPage} from '@features/reservations/calendar/calendar-page';
+import {ReportsPageComponent} from '@features/reports/reports-page.component';
+import {CalendarPageComponent} from '@features/calendar/calendar-page.component';
 import {SettingsPage} from '@features/settings/settings-page/settings-page.component';
+import {SettingsPlacesComponent} from '@features/settings/places/settings-places.component';
+import {SettingsAppearanceComponent} from '@features/settings/appearance/settings-appearance.component';
+import {SettingsCampingComponent} from '@features/settings/camping/settings-camping.component';
+import {SettingsStaffComponent} from '@features/settings/staff/settings-staff.component';
+import {AppShellComponent} from '@core/layout/app-shell.component';
+import {TodayPageComponent} from '@features/today/today-page.component';
+import {authGuard, guestGuard, HOME_PATH, LOGIN_PATH} from '@core/guards/auth.guard';
+
+const title = (page: string) => `${page} | Parceo`;
 
 export const routes: Routes = [
-  {
-    path: 'login',
-    component: LoginComponent
-  },
+  {path: LOGIN_PATH, component: LoginComponent, canActivate: [guestGuard], title: title('Logowanie')},
   {
     path: '',
-    component: LoginComponent
-  },
-  {
-    path: 'register',
-    component: RegisterComponent
-  },
-
-  {
-    path: 'admin-page',
-    component: AdminPageComponent,
-    children:[{
-      path: 'calendar',
-      component: CalendarPage
-    },
+    component: AppShellComponent,
+    canActivate: [authGuard],
+    children: [
+      {path: HOME_PATH, component: TodayPageComponent, title: title('Dziś')},
+      {path: 'kalendarz', component: CalendarPageComponent, title: title('Kalendarz')},
+      {path: 'raporty', component: ReportsPageComponent, title: title('Raporty')},
       {
-        path: 'statistics',
-        component: StatisticsPage
+        path: 'ustawienia', component: SettingsPage, children: [
+          {path: 'kemping', component: SettingsCampingComponent, title: title('Kemping')},
+          {path: 'parcele', component: SettingsPlacesComponent, title: title('Parcele i ceny')},
+          {path: 'pracownicy', component: SettingsStaffComponent, title: title('Pracownicy')},
+          {path: 'wyglad', component: SettingsAppearanceComponent, title: title('Wygląd')},
+          {path: '', pathMatch: 'full', redirectTo: 'parcele'},
+        ]
       },
-      {
-        path: 'reservations',
-        component: ReservationPage
-      },
-      {
-        path: 'users',
-        component: GuestPage
-      },
-      {
-        path: 'settings',
-        component: SettingsPage
-      },
+      {path: '', pathMatch: 'full', redirectTo: HOME_PATH},
     ]
   },
-]
+
+  //addresses of the previous version, kept so old bookmarks keep working
+  {path: 'login', redirectTo: LOGIN_PATH},
+  {path: 'admin-page/calendar', redirectTo: 'kalendarz'},
+  {path: 'admin-page/reservations', redirectTo: HOME_PATH},
+  {path: 'admin-page/users', redirectTo: HOME_PATH},
+  {path: 'admin-page/statistics', redirectTo: 'raporty'},
+  {path: 'admin-page/settings', redirectTo: 'ustawienia'},
+  {path: 'admin-page', redirectTo: HOME_PATH},
+  {path: '**', redirectTo: HOME_PATH},
+];

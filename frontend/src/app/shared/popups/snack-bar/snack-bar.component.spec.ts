@@ -1,23 +1,19 @@
-import {ComponentFixture, TestBed} from '@angular/core/testing';
-
-import {SnackBarComponent} from './snack-bar.component';
+import {TestBed} from '@angular/core/testing';
+import {MAT_SNACK_BAR_DATA} from '@angular/material/snack-bar';
+import {SnackBarComponent, SnackBarData} from './snack-bar.component';
 
 describe('SnackBarComponent', () => {
-  let component: SnackBarComponent;
-  let fixture: ComponentFixture<SnackBarComponent>;
-
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [SnackBarComponent]
-    })
-    .compileComponents();
-
-    fixture = TestBed.createComponent(SnackBarComponent);
-    component = fixture.componentInstance;
+  it('shows the message with the icon of its kind', () => {
+    const data: SnackBarData = {message: 'Zapisano rezerwację', kind: 'error'};
+    TestBed.configureTestingModule({
+      imports: [SnackBarComponent],
+      providers: [{provide: MAT_SNACK_BAR_DATA, useValue: data}],
+    });
+    const fixture = TestBed.createComponent(SnackBarComponent);
     fixture.detectChanges();
-  });
 
-  it('should create', () => {
-    expect(component).toBeTruthy();
+    const element = fixture.nativeElement as HTMLElement;
+    expect(element.textContent).toContain('Zapisano rezerwację');
+    expect(element.querySelector('mat-icon')?.textContent?.trim()).toBe('error');
   });
 });

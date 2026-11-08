@@ -1,0 +1,72 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  border-radius: 20px;
+  background: var(--mat-sys-surface-container-low);
+  overflow: hidden;
+}
+
+.toolbar:empty {
+  display: none;
+}
+
+.toolbar {
+  padding: var(--space-4);
+}
+
+.progress {
+  height: 4px;
+}
+
+.scroll {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+}
+
+th.mat-mdc-header-cell {
+  font: var(--mat-sys-title-small);
+  white-space: nowrap;
+}
+
+td.mat-mdc-cell {
+  font: var(--mat-sys-body-large);
+  white-space: nowrap;
+}
+
+.end {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+tr.clickable {
+  cursor: pointer;
+
+  &:hover {
+    background: color-mix(in srgb, var(--mat-sys-on-surface) 8%, transparent);
+  }
+
+  &:focus-visible {
+    outline: 3px solid var(--mat-sys-primary);
+    outline-offset: -3px;
+  }
+}
+
+.empty:empty {
+  display: none;
+}
+
+.mat-mdc-paginator {
+  border-top: 1px solid var(--mat-sys-outline-variant);
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}

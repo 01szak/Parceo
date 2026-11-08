@@ -25,9 +25,9 @@ export class PopupConfirmationService {
 
     this.popupConfirmation.open(PopupConfirmationComponent, {
       data: confirmationData,
-      width: 'auto',
-      maxWidth: '600px',
-      minWidth: '350px'
+      width: '480px',
+      maxWidth: 'calc(100vw - 32px)',
+      autoFocus: 'dialog'
     });
   }
 }

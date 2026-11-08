@@ -1,0 +1,225 @@
+:host {
+  display: block;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--mat-sys-outline-variant);
+  background: var(--mat-sys-surface-container-low);
+  overflow: hidden;
+}
+
+.scroll {
+  --place-column: 136px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  //the grid grows and shrinks while scrolling, so its scrollbar jumps: scroll by dragging, swiping or the arrows instead
+  scrollbar-width: none;
+  user-select: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
+  &.drag-scrolling {
+    cursor: grabbing;
+
+    .cell,
+    .bar {
+      cursor: grabbing;
+      pointer-events: none;
+    }
+  }
+
+  @media (max-width: 599.98px) {
+    --place-column: 84px;
+  }
+}
+
+.grid {
+  display: grid;
+  min-width: max-content;
+}
+
+.header-row,
+.row {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: subgrid;
+}
+
+// ---------- header ----------
+.header-row {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  height: 48px;
+  border-bottom: 1px solid var(--mat-sys-outline);
+  background: var(--mat-sys-surface-container-low);
+}
+
+.corner,
+.place {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  grid-column: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0 var(--space-4);
+  background: var(--mat-sys-surface-container);
+  border-right: 1px solid var(--mat-sys-outline-variant);
+}
+
+.corner {
+  font: var(--mat-sys-title-small);
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.day-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-left: 1px solid var(--calendar-gridline);
+
+  &.weekend {
+    background: var(--calendar-weekend);
+  }
+
+  &.week-start {
+    border-left-color: var(--mat-sys-outline);
+  }
+
+  &.today {
+    background: color-mix(in srgb, var(--mat-sys-primary) 12%, transparent);
+
+    .day-number {
+      background: var(--mat-sys-primary);
+      color: var(--mat-sys-on-primary);
+    }
+  }
+}
+
+.day-number {
+  min-width: 32px;
+  height: 28px;
+  padding: 0 4px;
+  box-sizing: border-box;
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-full);
+  font: var(--mat-sys-title-medium);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.weekday {
+  font: var(--mat-sys-body-small);
+  color: var(--mat-sys-on-surface-variant);
+}
+
+// ---------- rows ----------
+.row {
+  position: relative;
+  height: 48px;
+  border-bottom: 1px solid var(--calendar-gridline);
+}
+
+.place-index {
+  font: var(--mat-sys-title-medium);
+  font-weight: 700;
+}
+
+.place-type {
+  font: var(--mat-sys-body-small);
+  color: var(--mat-sys-on-surface-variant);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cell {
+  grid-row: 1;
+  border: none;
+  border-left: 1px solid var(--calendar-gridline);
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+
+  &.weekend {
+    background: var(--calendar-weekend);
+  }
+
+  &.week-start {
+    border-left-color: var(--mat-sys-outline);
+  }
+
+  &.today {
+    background: color-mix(in srgb, var(--mat-sys-primary) 8%, transparent);
+  }
+
+  &:hover {
+    background: color-mix(in srgb, var(--mat-sys-primary) 14%, transparent);
+  }
+
+  &:focus-visible {
+    outline: 3px solid var(--mat-sys-primary);
+    outline-offset: -3px;
+  }
+}
+
+// ---------- bars ----------
+.bar {
+  grid-row: 1;
+  z-index: 1;
+  align-self: center;
+  height: 36px;
+  min-width: 0;
+  margin: 0 2px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 10px;
+  border-radius: var(--radius-full);
+  border: 2px solid;
+  font: var(--mat-sys-label-large);
+  white-space: nowrap;
+  overflow: hidden;
+  cursor: pointer;
+
+  mat-icon {
+    flex: none;
+    width: 18px;
+    height: 18px;
+    font-size: 18px;
+  }
+
+  &.cut-start {
+    margin-left: 0;
+    border-top-left-radius: var(--radius-xs);
+    border-bottom-left-radius: var(--radius-xs);
+    border-left-style: dashed;
+  }
+
+  &.cut-end {
+    margin-right: 0;
+    border-top-right-radius: var(--radius-xs);
+    border-bottom-right-radius: var(--radius-xs);
+    border-right-style: dashed;
+  }
+
+  &:hover {
+    filter: brightness(0.95);
+  }
+}
+
+.bar-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tone-arrive { background: var(--res-arrive-container); color: var(--res-on-arrive-container); border-color: var(--res-arrive); }
+.tone-stay { background: var(--res-stay-container); color: var(--res-on-stay-container); border-color: var(--res-stay); }
+.tone-leave { background: var(--res-leave-container); color: var(--res-on-leave-container); border-color: var(--res-leave); }
+.tone-unpaid { background: var(--res-unpaid-container); color: var(--res-on-unpaid-container); border-color: var(--res-unpaid); }
+.tone-late { background: var(--res-late-container); color: var(--res-on-late-container); border-color: var(--res-late); }

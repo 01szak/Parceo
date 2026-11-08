@@ -1,0 +1,42 @@
+<div class="scroll" #scroller appDragScroll (scroll)="onScroll()">
+  <div class="grid" role="grid" aria-label="Obłożenie parcel" [style.grid-template-columns]="gridColumns()">
+
+    <div class="header-row" role="row">
+      <div class="corner" #corner role="columnheader">Parcela</div>
+      @for (day of days(); track day.date; let i = $index) {
+        <div class="day-header" role="columnheader" [style.grid-column]="dayColumn(i)"
+             [class.weekend]="day.weekend" [class.today]="day.today" [class.week-start]="day.weekStart">
+          <span class="day-number">{{ day.dayOfMonth }}</span>
+          <span class="weekday">{{ day.weekday }}</span>
+        </div>
+      }
+    </div>
+
+    @for (row of rows(); track row.place.id) {
+      <div class="row" role="row">
+        <div class="place" role="rowheader">
+          <span class="place-index">{{ row.place.index }}</span>
+          <span class="place-type">{{ row.place.camperPlaceType.typeName }}</span>
+        </div>
+
+        @for (day of days(); track day.date; let i = $index) {
+          <button type="button" class="cell" [style.grid-column]="dayColumn(i)"
+                  [class.weekend]="day.weekend" [class.today]="day.today" [class.week-start]="day.weekStart"
+                  [attr.aria-label]="cellLabel(row.place, day)"
+                  (click)="cellClick.emit({place: row.place, date: day.date})"></button>
+        }
+
+        @for (bar of row.bars; track bar.reservation.id) {
+          <button type="button" class="bar" [class]="'bar tone-' + bar.tone"
+                  [class.cut-start]="bar.cutStart" [class.cut-end]="bar.cutEnd"
+                  [style.grid-column]="barColumn(bar)"
+                  [matTooltip]="barDescription(bar)" [attr.aria-label]="barDescription(bar)"
+                  (click)="barClick.emit(bar.reservation)">
+            <mat-icon aria-hidden="true">{{ toneIcons[bar.tone] }}</mat-icon>
+            <span class="bar-label">{{ barLabel(bar) }}</span>
+          </button>
+        }
+      </div>
+    }
+  </div>
+</div>

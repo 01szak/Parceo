@@ -1,0 +1,125 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+// wide screens: one row; up to 1024 px the filter always goes under the title, so a longer title
+// ("Październik – listopad 2026") never pushes "Nowa rezerwacja" around
+.toolbar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 240px auto;
+  grid-template-areas: "navigation filter new";
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.navigation {
+  grid-area: navigation;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+
+  h1 {
+    flex: 0 1 auto;
+    min-width: 0;
+    margin: 0 var(--space-2);
+    font: var(--mat-sys-headline-small);
+    font-weight: 700;
+  }
+
+  button {
+    flex: none;
+  }
+}
+
+.type-filter {
+  grid-area: filter;
+  width: 100%;
+}
+
+.new {
+  grid-area: new;
+  height: 48px;
+}
+
+// tablet: the filter and "Nowa rezerwacja" (on the right) in one row, the days with the arrows below
+@media (max-width: 1024px) {
+  .toolbar {
+    grid-template-columns: minmax(0, 320px) minmax(0, 1fr) auto;
+    grid-template-areas:
+      "filter . new"
+      "navigation navigation navigation";
+  }
+
+  .navigation h1 {
+    font: var(--mat-sys-title-large);
+    font-weight: 700;
+  }
+}
+
+.progress {
+  height: 4px;
+  margin-bottom: calc(-1 * var(--space-4));
+}
+
+.error {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--mat-sys-error-container);
+  color: var(--mat-sys-on-error-container);
+  font: var(--mat-sys-body-large);
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.hint {
+  flex: 1;
+  min-width: 240px;
+  text-align: right;
+  font: var(--mat-sys-body-medium);
+  color: var(--mat-sys-on-surface-variant);
+}
+
+// phone: one column, "Nowa rezerwacja" first, then the filter, then the days with the arrows
+@media (max-width: 599.98px) {
+  .toolbar {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "new"
+      "filter"
+      "navigation";
+  }
+
+  .navigation {
+    gap: var(--space-1);
+
+    h1 {
+      flex: 1;
+      min-width: 0;
+      margin: 0;
+      font: var(--mat-sys-title-small);
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .today {
+      min-width: 0;
+      padding: 0 12px;
+    }
+  }
+
+  .hint {
+    text-align: left;
+  }
+}
