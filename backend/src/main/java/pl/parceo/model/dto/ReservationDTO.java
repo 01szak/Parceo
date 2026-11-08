@@ -1,6 +1,5 @@
 package pl.parceo.model.dto;
 
-import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import pl.parceo.model.constant.ReservationStatus;
 import jakarta.annotation.Nullable;
@@ -16,7 +15,7 @@ public record ReservationDTO(
         @NotNull LocalDate checkout,
         @NotNull GuestDTO guest,
         @NotNull CamperPlaceDTO camperPlace,
-        @Nullable @Positive Double price,
+        @Nullable Double price,
         @NotNull Boolean paid,
         @Nullable ReservationStatus reservationStatus,
         @Nullable UserDTO creator,
