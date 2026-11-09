@@ -24,6 +24,7 @@ import {DateDelimiter, DateFormater} from '@shared/helper/DateFormater';
 import {firstConflict, nightsBetween, nightsLabel, stayLabel, withoutOwnStay} from '@shared/domain/stay-range';
 import {countryIso} from '@shared/domain/countries';
 import {formatPln} from '@shared/domain/money';
+import {criteria} from '@shared/domain/search-criteria';
 import {CamperPlaceDto, GuestDto, ReservationDto} from '../../api';
 
 export type ReservationFormData = {
@@ -320,7 +321,7 @@ export class ReservationFormComponent {
       distinctUntilChanged(),
       takeUntilDestroyed(),
     ).subscribe(text => this.guestService.searchRequest.set({
-      searchCriteria: [{key: 'lastname', value: text.trim(), operation: 'LIKE'}]
+      searchCriteria: [criteria('lastname', 'LIKE', text.trim(), {joinOperator: undefined})]
     }));
   }
 

@@ -57,7 +57,7 @@ public class WebAppReservationTask implements ExecutableTask {
             return;
         }
 
-        final var byEmail = SearchCriteria.builder().key("email").operation(Operation.EQUALS).value(reservationDTO.guest().email()).build();
+        final var byEmail = SearchCriteria.builder().object(new SearchCriteria.Join("email")).operation(Operation.EQUALS).value(reservationDTO.guest().email()).buildArray();
         final var guestOpt = guestService.findBy(byEmail).stream().findFirst();
         //If the guest already exists (matched by email) we reuse that entity so the reservation
         //is linked to a persisted guest id.
@@ -92,23 +92,22 @@ public class WebAppReservationTask implements ExecutableTask {
 
         final var optCreatedReservation = reservationService.findBy(
                 SearchCriteria.builder()
-                        .joinObject("guest")
-                        .key("id")
+                        .object(new SearchCriteria.Join("guest", new SearchCriteria.Join("id")))
                         .operation(Operation.EQUALS)
                         .value(guest.id().toString())
                         .and()
-                        .key("reservationStatus")
+                        .object(new SearchCriteria.Join("reservationStatus"))
                         .operation(Operation.EQUALS)
                         .value(UNVERIFIED.toString())
                         .and()
-                        .key("checkin")
+                        .object(new SearchCriteria.Join("checkin"))
                         .operation(Operation.EQUALS)
                         .value(reservationDTO.checkin().toString())
                         .and()
-                        .key("checkout")
+                        .object(new SearchCriteria.Join("checkout"))
                         .operation(Operation.EQUALS)
                         .value(reservationDTO.checkout().toString())
-                        .build()
+                        .buildArray()
         )
         .getContent();
 
