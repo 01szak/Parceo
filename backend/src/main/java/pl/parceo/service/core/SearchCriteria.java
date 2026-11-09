@@ -1,5 +1,8 @@
 package pl.parceo.service.core;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
 import pl.parceo.model.constant.JoinOperator;
 import pl.parceo.model.constant.Operation;
 import jakarta.annotation.Nullable;
@@ -7,70 +10,58 @@ import jakarta.validation.constraints.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 
-public record SearchCriteria(
-        @Nullable String joinObject,
-        @NotNull String key,
-        @NotNull Operation operation,
-        @NotNull String value,
-        @Nullable String secondValue,
-        @Nullable JoinOperator joinOperator
-) {
+@Getter
+@Builder
+@AllArgsConstructor
+public class SearchCriteria {
 
-    public static Builder builder() {
-        return new Builder(null, null, null, null, null, List.of());
+    @NotNull  private Join object;
+    @NotNull  private Operation operation;
+    @NotNull  private String value;
+    @Nullable private String secondValue;
+    @Nullable private JoinOperator joinOperator;
+
+    public record Join (@NotNull String key, @Nullable Join inner) {
+        public Join(@NotNull String key) {
+            this(key, null);
+        }
     }
 
-    public record Builder(
-            @Nullable String joinObject,
-            @Nullable String key,
-            @Nullable Operation operation,
-            @Nullable String value,
-            @Nullable String secondValue,
-            List<SearchCriteria> criterias
-    ) {
-        public Builder joinObject(String joinObject) {
-            return new Builder(joinObject, key, operation, value, secondValue, criterias);
+    @lombok.Builder
+    public static SearchCriteriaBuilder builder() {
+        return new SearchCriteriaBuilder();
+    }
+
+    public static class SearchCriteriaBuilder {
+        private final List<SearchCriteria> searchCriteriaList = new ArrayList<>();
+
+        public SearchCriteriaBuilder and() {
+            this.joinOperator = JoinOperator.AND;
+            searchCriteriaList.add(new SearchCriteria(this.object, this.operation, this.value, this.secondValue, this.joinOperator));
+            return this;
         }
 
-        public Builder key(String key) {
-            return new Builder(joinObject, key, operation, value, secondValue, criterias);
+        public SearchCriteriaBuilder or() {
+            this.joinOperator = JoinOperator.OR;
+            searchCriteriaList.add(new SearchCriteria(this.object, this.operation, this.value, this.secondValue, this.joinOperator));
+            return this;
         }
 
-        public Builder operation(Operation operation) {
-            return new Builder(joinObject, key, operation, value, secondValue, criterias);
+        private SearchCriteria build() {
+            throw new UnsupportedOperationException("build method is not supported in SearchCriteriaBuilder, please use buildArray");
         }
 
-        public Builder value(String value) {
-            return new Builder(joinObject, key, operation, value, secondValue, criterias);
-        }
-
-        public Builder secondValue(String secondValue) {
-            return new Builder(joinObject, key, operation, value, secondValue, criterias);
-        }
-
-        public Builder and() {
-            return appendCriteria(JoinOperator.AND);
-        }
-
-        public Builder or() {
-            return appendCriteria(JoinOperator.OR);
-        }
-
-        private Builder appendCriteria(JoinOperator joinOperator) {
-            final var updated = new ArrayList<>(criterias);
-            updated.add(new SearchCriteria(joinObject, key, operation, value, secondValue, joinOperator));
-            return new Builder(null, null, null, null, null, List.copyOf(updated));
-        }
-
-        public SearchCriteria[] build() {
-            if (key == null) {
-                return criterias.toArray(new SearchCriteria[0]);
+        /*
+            Use this method for criteria chaining
+         */
+        public SearchCriteria[] buildArray() {
+            if (searchCriteriaList.isEmpty()) {
+                searchCriteriaList.add(new SearchCriteria(this.object, this.operation, this.value, this.secondValue, this.joinOperator));
             }
-            final var updated = new ArrayList<>(criterias);
-            updated.add(new SearchCriteria(joinObject, key, operation, value, secondValue, null));
-            return updated.toArray(new SearchCriteria[0]);
+            return searchCriteriaList.toArray(SearchCriteria[]::new);
         }
     }
 }

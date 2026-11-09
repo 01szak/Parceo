@@ -17,6 +17,11 @@ export class CamperPlaceTypeService extends PagedCrudService {
     stream: () => from(this.serviceFacade.api.invoke(getTypes))
   });
 
+  //whole types (with ids), for filters that need to send the id
+  public getAllTypes = computed<CamperPlaceTypeDto[]>(() => this.allTypesResource.hasValue()
+    ? this.allTypesResource.value() ?? []
+    : []);
+
   public getAll =  computed(() => this.allTypesResource.hasValue()
     ? this.allTypesResource.value()?.map(cpt => cpt.typeName) ?? []
     : []);

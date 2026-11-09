@@ -5,17 +5,32 @@ import pl.parceo.exception.ClientSideException;
 import pl.parceo.exception.UserInputException;
 import pl.parceo.model.constant.Country;
 import pl.parceo.model.constant.Operation;
+import pl.parceo.model.dto.CamperPlaceDTO;
+import pl.parceo.model.dto.CamperPlaceTypeDTO;
+import pl.parceo.model.dto.GuestDTO;
+import pl.parceo.model.dto.ReservationDTO;
+import pl.parceo.model.entity.Guest;
+import pl.parceo.model.entity.Organisation;
 import pl.parceo.model.entity.Reservation;
 import pl.parceo.model.entity.Task;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import pl.parceo.service.util.DtoMapper;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
+import static org.assertj.core.api.Assertions.fail;
 import static pl.parceo.model.constant.TaskType.WEB_APP_RESERVATION_TASK;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -58,7 +73,7 @@ class GenericSpecificationIT extends BaseIT {
     @Test
     void shouldReturnDataWithEqualOperation() {
         // given
-        var criteria = SearchCriteria.builder().key("firstname").operation(Operation.EQUALS).value(GUEST_FN).build();
+        var criteria = SearchCriteria.builder().object(new SearchCriteria.Join("firstname")).operation(Operation.EQUALS).value(GUEST_FN).buildArray();
 
         // when
         var result = guestService.findBy(criteria).get().toList();
@@ -72,10 +87,10 @@ class GenericSpecificationIT extends BaseIT {
     void shouldReturnDataFilteredByMultipleCriteria() {
         // given
         var criteria = SearchCriteria.builder()
-                .key("firstname").operation(Operation.EQUALS).value(GUEST_FN)
+                .object(new SearchCriteria.Join("firstname")).operation(Operation.EQUALS).value(GUEST_FN)
                 .and()
-                .key("lastname").operation(Operation.NOT_EQUALS).value(GUEST_LN_2)
-                .build();
+                .object(new SearchCriteria.Join("lastname")).operation(Operation.NOT_EQUALS).value(GUEST_LN_2)
+                .buildArray();
 
         // when
         var result = guestService.findBy(criteria).get().toList();
@@ -89,7 +104,7 @@ class GenericSpecificationIT extends BaseIT {
     @Test
     void shouldReturnDataFilteredByLessThenOperation() {
         // given
-        var criteria = SearchCriteria.builder().key("checkin").operation(Operation.LESS_THEN).value(CHECKIN.plusDays(1).toString()).build();
+        var criteria = SearchCriteria.builder().object(new SearchCriteria.Join("checkin")).operation(Operation.LESS_THEN).value(CHECKIN.plusDays(1).toString()).buildArray();
 
         // when
         var result = reservationService.findBy(criteria).get().toList();
@@ -102,7 +117,7 @@ class GenericSpecificationIT extends BaseIT {
     @Test
     void shouldReturnDataFilteredByGreaterThenOperation() {
         // given
-        var criteria = SearchCriteria.builder().key("checkin").operation(Operation.GREATER_THEN).value(CHECKIN.minusDays(1).toString()).build();
+        var criteria = SearchCriteria.builder().object(new SearchCriteria.Join("checkin")).operation(Operation.GREATER_THEN).value(CHECKIN.minusDays(1).toString()).buildArray();
 
         // when
         var result = reservationService.findBy(criteria).get().toList();
@@ -116,11 +131,11 @@ class GenericSpecificationIT extends BaseIT {
     void shouldReturnDataFilteredByBetweenOperation() {
         // given
         var criteria = SearchCriteria.builder()
-                .key("checkin")
+                .object(new SearchCriteria.Join("checkin"))
                 .operation(Operation.BETWEEN)
                 .value(CHECKIN.minusDays(1).toString())
                 .secondValue(CHECKOUT.plusDays(1).toString())
-                .build();
+                .buildArray();
 
         // when
         var result = reservationService.findBy(criteria).get().toList();
@@ -133,7 +148,7 @@ class GenericSpecificationIT extends BaseIT {
     @Test
     void shouldReturnDataFilteredByLikeOperation() {
         // given
-        var criteria = SearchCriteria.builder().key("firstname").operation(Operation.LIKE).value("stFir").build();
+        var criteria = SearchCriteria.builder().object(new SearchCriteria.Join("firstname")).operation(Operation.LIKE).value("stFir").buildArray();
 
         // when
         var result = guestService.findBy(criteria).get().toList();
@@ -147,10 +162,10 @@ class GenericSpecificationIT extends BaseIT {
     void shouldReturnDataWithJoinAndMultipleCriteria() {
         // given
         var criteria = SearchCriteria.builder()
-                .joinObject("guest").key("firstname").operation(Operation.LIKE).value(GUEST_FN)
+                .object(new SearchCriteria.Join("guest", new SearchCriteria.Join("firstname"))).operation(Operation.LIKE).value(GUEST_FN)
                 .and()
-                .joinObject("guest").key("lastname").operation(Operation.LIKE).value(GUEST_LN)
-                .build();
+                .object(new SearchCriteria.Join("guest", new SearchCriteria.Join("lastname"))).operation(Operation.LIKE).value(GUEST_LN)
+                .buildArray();
 
         // when
         var result = reservationService.findBy(criteria).get().toList();
@@ -165,7 +180,7 @@ class GenericSpecificationIT extends BaseIT {
     @Test
     void shouldReturnDataFilteredByBigDecimalOperation() {
         // given
-        var criteria = SearchCriteria.builder().key("price").operation(Operation.EQUALS).value(reservation.getPrice().toString()).build();
+        var criteria = SearchCriteria.builder().object(new SearchCriteria.Join("price")).operation(Operation.EQUALS).value(reservation.getPrice().toString()).buildArray();
 
         // when
         var result = reservationService.findBy(criteria).get().toList();
@@ -178,7 +193,7 @@ class GenericSpecificationIT extends BaseIT {
     @Test
     void shouldReturnDataFilteredByBooleanOperation() {
         // given
-        var criteria = SearchCriteria.builder().key("paid").operation(Operation.EQUALS).value(String.valueOf(IS_PAID)).build();
+        var criteria = SearchCriteria.builder().object(new SearchCriteria.Join("paid")).operation(Operation.EQUALS).value(String.valueOf(IS_PAID)).buildArray();
 
         // when
         var result = reservationService.findBy(criteria).get().toList();
@@ -191,7 +206,7 @@ class GenericSpecificationIT extends BaseIT {
     @Test
     void shouldReturnDataFilteredByIntegerOperation() {
         // given
-        var criteria = SearchCriteria.builder().key("id").operation(Operation.EQUALS).value(reservation.getId().toString()).build();
+        var criteria = SearchCriteria.builder().object(new SearchCriteria.Join("id")).operation(Operation.EQUALS).value(reservation.getId().toString()).buildArray();
 
         // when
         var result = reservationService.findBy(criteria).get().toList();
@@ -204,7 +219,7 @@ class GenericSpecificationIT extends BaseIT {
     @Test
     void shouldReturnDataFilteredByEnumOperation() {
         // given
-        var criteria = SearchCriteria.builder().key("reservationStatus").operation(Operation.EQUALS).value(reservation.getReservationStatus().name()).build();
+        var criteria = SearchCriteria.builder().object(new SearchCriteria.Join("reservationStatus")).operation(Operation.EQUALS).value(reservation.getReservationStatus().name()).buildArray();
 
         // when
         var result = reservationService.findBy(criteria).get().toList();
@@ -217,7 +232,7 @@ class GenericSpecificationIT extends BaseIT {
     @Test
     void shouldReturnDataWithNotEqualOperation() {
         // given
-        var criteria = SearchCriteria.builder().key("firstname").operation(Operation.NOT_EQUALS).value("NonExistentName").build();
+        var criteria = SearchCriteria.builder().object(new SearchCriteria.Join("firstname")).operation(Operation.NOT_EQUALS).value("NonExistentName").buildArray();
 
         // when
         var result = guestService.findBy(criteria).get().toList();
@@ -230,7 +245,7 @@ class GenericSpecificationIT extends BaseIT {
     @Test
     void shouldMatchLikeOperationCaseInsensitively() {
         // given
-        var criteria = SearchCriteria.builder().key("firstname").operation(Operation.LIKE).value("GuEsTfIrStNaMe").build();
+        var criteria = SearchCriteria.builder().object(new SearchCriteria.Join("firstname")).operation(Operation.LIKE).value("GuEsTfIrStNaMe").buildArray();
 
         // when
         var result = guestService.findBy(criteria).get().toList();
@@ -243,9 +258,9 @@ class GenericSpecificationIT extends BaseIT {
     @Test
     void shouldReturnEmptyWhenNoMatchesFound() {
         // given
-        var criteria = SearchCriteria.builder().key("firstname").operation(Operation.EQUALS).value("ThisNameDoesNotExistInAnyRecord").build();
+        var criteria = SearchCriteria.builder().object(new SearchCriteria.Join("firstname")).operation(Operation.EQUALS).value("ThisNameDoesNotExistInAnyRecord").buildArray();
 
-        // when
+        // whenresult = {ImmutableCollections$ListN@21584}  size = 1
         var result = guestService.findBy(criteria).get().toList();
 
         // then
@@ -262,13 +277,13 @@ class GenericSpecificationIT extends BaseIT {
         final var guestC = createGuest("Charlie", "Gamma", Country.POLAND);
 
         final var criteria = SearchCriteria.builder()
-                .key("firstname").operation(Operation.EQUALS).value("Alice")
+                .object(new SearchCriteria.Join("firstname")).operation(Operation.EQUALS).value("Alice")
                 .or()
-                .key("firstname").operation(Operation.EQUALS).value("Bob")
+                .object(new SearchCriteria.Join("firstname")).operation(Operation.EQUALS).value("Bob")
                 .or()
-                .key("firstname").operation(Operation.EQUALS).value("Charlie")
+                .object(new SearchCriteria.Join("firstname")).operation(Operation.EQUALS).value("Charlie")
                 .or()
-                .build();
+                .buildArray();
 
         // when
         final var result = guestService.findBy(criteria).getContent();
@@ -286,26 +301,26 @@ class GenericSpecificationIT extends BaseIT {
 
         // Subcase 1: Matching (David AND Delta) OR (NonExistent)
         final var criteria1 = SearchCriteria.builder()
-                .key("firstname").operation(Operation.EQUALS).value("David")
+                .object(new SearchCriteria.Join("firstname")).operation(Operation.EQUALS).value("David")
                 .and()
-                .key("lastname").operation(Operation.EQUALS).value("Delta")
+                .object(new SearchCriteria.Join("lastname")).operation(Operation.EQUALS).value("Delta")
                 .and()
-                .key("firstname").operation(Operation.EQUALS).value("NonExistent")
+                .object(new SearchCriteria.Join("firstname")).operation(Operation.EQUALS).value("NonExistent")
                 .or()
-                .build();
+                .buildArray();
 
         final var result1 = guestService.findBy(criteria1).getContent();
         assertThat(result1.stream().anyMatch(g -> "David".equals(g.getFirstname()) && "Delta".equals(g.getLastname()))).isTrue();
 
         // Subcase 2: Matching (David AND WrongLastName) OR (Eva) -> (false) OR true -> returns Eva
         final var criteria2 = SearchCriteria.builder()
-                .key("firstname").operation(Operation.EQUALS).value("David")
+                .object(new SearchCriteria.Join("firstname")).operation(Operation.EQUALS).value("David")
                 .and()
-                .key("lastname").operation(Operation.EQUALS).value("WrongLastName")
+                .object(new SearchCriteria.Join("lastname")).operation(Operation.EQUALS).value("WrongLastName")
                 .and()
-                .key("firstname").operation(Operation.EQUALS).value("Eva")
+                .object(new SearchCriteria.Join("firstname")).operation(Operation.EQUALS).value("Eva")
                 .or()
-                .build();
+                .buildArray();
 
         final var result2 = guestService.findBy(criteria2).getContent();
         final var result2Names = result2.stream().map(g -> g.getFirstname()).toList();
@@ -321,13 +336,13 @@ class GenericSpecificationIT extends BaseIT {
 
         // (Frank AND Foxtrot) OR Grace
         final var criteria = SearchCriteria.builder()
-                .key("firstname").operation(Operation.EQUALS).value("Frank")
+                .object(new SearchCriteria.Join("firstname")).operation(Operation.EQUALS).value("Frank")
                 .and()
-                .key("lastname").operation(Operation.EQUALS).value("Foxtrot")
+                .object(new SearchCriteria.Join("lastname")).operation(Operation.EQUALS).value("Foxtrot")
                 .and()
-                .key("firstname").operation(Operation.EQUALS).value("Grace")
+                .object(new SearchCriteria.Join("firstname")).operation(Operation.EQUALS).value("Grace")
                 .or()
-                .build();
+                .buildArray();
 
         final var result = guestService.findBy(criteria).getContent();
         final var matchedNames = result.stream().map(g -> g.getFirstname()).toList();
@@ -337,7 +352,7 @@ class GenericSpecificationIT extends BaseIT {
     @Test
     void shouldThrowClientSideExceptionWhenSearchingByInvalidProperty() {
         // given
-        final var criteria = SearchCriteria.builder().key("nonExistentProperty").operation(Operation.EQUALS).value("value").build();
+        final var criteria = SearchCriteria.builder().object(new SearchCriteria.Join("nonExistentProperty")).operation(Operation.EQUALS).value("value").buildArray();
 
         // when & then
         assertThatThrownBy(() -> guestService.findBy(criteria))
@@ -347,7 +362,7 @@ class GenericSpecificationIT extends BaseIT {
     @Test
     void shouldThrowClientSideExceptionWhenJoiningInvalidRelation() {
         // given
-        final var criteria = SearchCriteria.builder().joinObject("invalidRelation").key("someField").operation(Operation.EQUALS).value("value").build();
+        final var criteria = SearchCriteria.builder().object(new SearchCriteria.Join("invalidRelation", new SearchCriteria.Join("some-field"))).operation(Operation.EQUALS).value("value").buildArray();
 
         // when & then
         assertThatThrownBy(() -> reservationService.findBy(criteria))
@@ -357,7 +372,7 @@ class GenericSpecificationIT extends BaseIT {
     @Test
     void shouldThrowUserInputExceptionWhenDateFormatIsInvalid() {
         // given
-        final var criteria = SearchCriteria.builder().key("checkin").operation(Operation.EQUALS).value("invalid-date-format").build();
+        final var criteria = SearchCriteria.builder().object(new SearchCriteria.Join("checkin")).operation(Operation.EQUALS).value("invalid-date-format").buildArray();
 
         // when & then
         assertThatThrownBy(() -> reservationService.findBy(criteria))
@@ -368,7 +383,7 @@ class GenericSpecificationIT extends BaseIT {
     @Test
     void shouldThrowClientSideExceptionWhenBetweenOperationHasNullSecondValue() {
         // given
-        final var criteria = new SearchCriteria(null, "checkin", Operation.BETWEEN, "3026-01-01", null, null);
+        final var criteria = new SearchCriteria(new SearchCriteria.Join("checkin"), Operation.BETWEEN, "3026-01-01", null, null);
 
         // when & then
         assertThatThrownBy(() -> reservationService.findBy(criteria))
@@ -380,11 +395,11 @@ class GenericSpecificationIT extends BaseIT {
     void shouldReturnDataFilteredByNumericBetweenOperation() {
         // given
         final var criteria = SearchCriteria.builder()
-                .key("price")
+                .object(new SearchCriteria.Join("price"))
                 .operation(Operation.BETWEEN)
                 .value("1.00")
                 .secondValue("100000.00")
-                .build();
+                .buildArray();
 
         // when
         final var result = reservationService.findBy(criteria).getContent();
@@ -398,10 +413,10 @@ class GenericSpecificationIT extends BaseIT {
     void shouldReturnDataFilteredByNumericGreaterThanAndLessThan() {
         // given
         final var criteria = SearchCriteria.builder()
-                .key("price").operation(Operation.GREATER_THEN).value("1.00")
+                .object(new SearchCriteria.Join("price")).operation(Operation.GREATER_THEN).value("1.00")
                 .and()
-                .key("price").operation(Operation.LESS_THEN).value("100000.00")
-                .build();
+                .object(new SearchCriteria.Join("price")).operation(Operation.LESS_THEN).value("100000.00")
+                .buildArray();
 
         // when
         final var result = reservationService.findBy(criteria).getContent();
@@ -417,10 +432,10 @@ class GenericSpecificationIT extends BaseIT {
         final var task = taskService.create(Task.builder().taskType(WEB_APP_RESERVATION_TASK).targetId("dummyID").executionDate(LocalDateTime.parse("2067-01-02T01:00:00")).build());
 
         final var criteria = SearchCriteria.builder()
-                .key("executionDate").operation(Operation.GREATER_THEN).value("2067-01-01T01:00:00")
+                .object(new SearchCriteria.Join("executionDate")).operation(Operation.GREATER_THEN).value("2067-01-01T01:00:00")
                 .and()
-                .key("executionDate").operation(Operation.LESS_THEN).value("2067-01-03T01:00:00")
-                .build();
+                .object(new SearchCriteria.Join("executionDate")).operation(Operation.LESS_THEN).value("2067-01-03T01:00:00")
+                .buildArray();
 
         // when
         final var result = (Task) taskService.findBy(criteria).get().findFirst().get();
@@ -442,12 +457,39 @@ class GenericSpecificationIT extends BaseIT {
     @Test
     void shouldReturnAllRecordsWhenCriteriaHasEmptyKey() {
         // given
-        final var criteria = SearchCriteria.builder().key("").operation(Operation.EQUALS).value("someValue").build();
+        final var criteria = SearchCriteria.builder().object(new SearchCriteria.Join("")).operation(Operation.EQUALS).value("someValue").buildArray();
 
         // when
         final var result = guestService.findBy(criteria).getContent();
 
         // then
         assertThat(result).isNotEmpty();
+    }
+
+    @Test
+    void shouldReturnNestedJoinQueryResult() {
+        // given
+        final var camperPlaceType = createCpType("cpType", BigDecimal.TEN);
+        final var camperPlace = createCamperPlace("67", camperPlaceType);
+        final var guest = createGuest("Nested", "Join", Country.POLAND);
+        final var created = createReservation(camperPlace, LocalDate.now().plusDays(30), LocalDate.now().plusDays(31), guest, false);
+        final var criteria = SearchCriteria.builder()
+                .object(
+                        new SearchCriteria.Join("camperPlace",
+                                new SearchCriteria.Join("camperPlaceType",
+                                        new SearchCriteria.Join("typeName")
+                                )
+                        )
+                )
+                .operation(Operation.EQUALS)
+                .value("cpType")
+                .buildArray();
+
+        // when
+        final var result = reservationService.findBy(criteria).getContent();
+
+        // then
+        assertThat(result).isNotEmpty();
+        assertThat(result.stream().anyMatch(r -> Objects.equals(r.getId(), created.getId()))).isTrue();
     }
 }
