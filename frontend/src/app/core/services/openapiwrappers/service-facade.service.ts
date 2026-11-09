@@ -1,3 +1,4 @@
+import {criteria} from '@shared/domain/search-criteria';
 import {inject, Injectable} from '@angular/core';
 import {
   Api,
@@ -44,18 +45,8 @@ export class ServiceFacade {
         //copy, the body may be a shared signal value / DEFAULT_SEARCH_REQUEST and must not be mutated
         const reservationsWithAssignedStatus: SearchCriteria[] = [
           ...(body.searchCriteria ?? []),
-          {
-            key: "reservationStatus",
-            operation: "NOT_EQUALS",
-            value: 'UNVERIFIED',
-            joinOperator: "AND"
-          } as SearchCriteria,
-          {
-            key: "reservationStatus",
-            operation: "NOT_EQUALS",
-            value: 'VERIFIED',
-            joinOperator: "AND"
-          } as SearchCriteria
+          criteria('reservationStatus', 'NOT_EQUALS', 'UNVERIFIED'),
+          criteria('reservationStatus', 'NOT_EQUALS', 'VERIFIED'),
         ];
         return from(this.api.invoke(findBy, {...params, body: {searchCriteria: reservationsWithAssignedStatus}}))
       }

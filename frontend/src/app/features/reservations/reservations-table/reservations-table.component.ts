@@ -11,6 +11,7 @@ import {ReservationDto} from '../../../api';
 import {ResourceType} from '@core/services/openapiwrappers/service-facade.service';
 import {createPagedQuery, QuerySort} from '@core/services/openapiwrappers/paged-query';
 import {ReservationService} from '@core/services/openapiwrappers/ReservationService';
+import {CamperPlaceTypeService} from '@core/services/openapiwrappers/CamperPlaceTypeService';
 import {PopupFormService} from '@core/services/PopupFormService';
 import {PopupConfirmationService} from '@core/services/PopupConfirmationService';
 import {SavedFiltersService} from '@core/services/SavedFiltersService';
@@ -23,6 +24,7 @@ import {EmptyStateComponent} from '@shared/ui/empty-state/empty-state.component'
 import {
   hasFilters,
   NO_FILTERS,
+  placeTypeFilterGroup,
   RESERVATION_FILTER_GROUPS,
   RESERVATION_VIEWS,
   reservationCriteria,
@@ -95,11 +97,12 @@ export class ReservationsTableComponent {
   private readonly forms = inject(PopupFormService);
   private readonly confirmation = inject(PopupConfirmationService);
   private readonly savedFilters = inject(SavedFiltersService);
+  private readonly placeTypes = inject(CamperPlaceTypeService);
 
   protected readonly query = createPagedQuery<ReservationDto>(ResourceType.RESERVATION);
   protected readonly columns = COLUMNS;
   protected readonly views = RESERVATION_VIEWS;
-  protected readonly filterGroups = RESERVATION_FILTER_GROUPS;
+  protected readonly filterGroups = computed(() => [...RESERVATION_FILTER_GROUPS, placeTypeFilterGroup(this.placeTypes.getAllTypes())]);
   protected readonly saved = this.savedFilters.list<ReservationViewId, ReservationFilters>(SAVED_LIST_ID);
 
   //a built-in view id or the id of a saved filter
@@ -126,6 +129,8 @@ export class ReservationsTableComponent {
       status: extra.status !== 'any' ? extra.status : base.status,
       payment: extra.payment !== 'any' ? extra.payment : base.payment,
       arrival: extra.arrival !== 'any' ? extra.arrival : base.arrival,
+      //filters saved before the type filter existed have no placeType
+      placeType: extra.placeType !== 'any' ? extra.placeType : (base.placeType ?? 'any'),
     };
   });
 
