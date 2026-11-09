@@ -53,8 +53,8 @@ public class CamperPlaceServiceIT extends BaseIT {
         final var res2Checkout = LocalDate.parse("2030-06-10");
 
         // when & then
-        final var camperPlace = camperPlaceService.findBy(SearchCriteria.builder().key("index").operation(Operation.LIKE).value("2_CS_IT_CP").build()).getContent().getFirst();
-        final var guest = guestService.findBy(SearchCriteria.builder().key("firstname").operation(Operation.LIKE).value("Jan").and().key("lastname").operation(Operation.LIKE).value("Kowalski").build()).getContent().getFirst();
+        final var camperPlace = camperPlaceService.findBy(SearchCriteria.builder().object(new SearchCriteria.Join("index")).operation(Operation.LIKE).value("2_CS_IT_CP").buildArray()).getContent().getFirst();
+        final var guest = guestService.findBy(SearchCriteria.builder().object(new SearchCriteria.Join("firstname")).operation(Operation.LIKE).value("Jan").and().object(new SearchCriteria.Join("lastname")).operation(Operation.LIKE).value("Kowalski").buildArray()).getContent().getFirst();
 
         createReservation(camperPlace, res2Checkin, res2Checkout, guest, false);
 
@@ -81,8 +81,8 @@ public class CamperPlaceServiceIT extends BaseIT {
         final var overlappingCheckin = LocalDate.parse("2030-07-05");
         final var overlappingCheckout = LocalDate.parse("2030-07-15");
 
-        final var camperPlace = camperPlaceService.findBy(SearchCriteria.builder().key("index").operation(Operation.LIKE).value("3_CS_IT_CP").build()).getContent().getFirst();
-        final var guest = guestService.findBy(SearchCriteria.builder().key("firstname").operation(Operation.LIKE).value("Jan").and().key("lastname").operation(Operation.LIKE).value("Kowalski").build()).getContent().getFirst();
+        final var camperPlace = camperPlaceService.findBy(SearchCriteria.builder().object(new SearchCriteria.Join("index")).operation(Operation.LIKE).value("3_CS_IT_CP").buildArray()).getContent().getFirst();
+        final var guest = guestService.findBy(SearchCriteria.builder().object(new SearchCriteria.Join("firstname")).operation(Operation.LIKE).value("Jan").and().object(new SearchCriteria.Join("lastname")).operation(Operation.LIKE).value("Kowalski").buildArray()).getContent().getFirst();
 
         // when & then
         assertThatThrownBy(() -> {
