@@ -23,6 +23,7 @@ import {countLabel} from '@shared/domain/plural';
 import {nightsBetween, nightsOf} from '@shared/domain/stay-range';
 import {toCsv} from '@shared/domain/csv';
 import {todayIso} from '@shared/domain/iso-date';
+import {criteria} from '@shared/domain/search-criteria';
 
 const PERIODS: readonly { kind: PeriodKind, label: string }[] = [
   {kind: 'thisMonth', label: 'Ten miesiąc'},
@@ -38,8 +39,8 @@ const DONUT_SLICES = 5;
 
 function overlapping(period: ReportPeriod): SearchCriteria[] {
   return [
-    {key: 'checkin', operation: 'LESS_THEN', value: period.to, joinOperator: 'AND'},
-    {key: 'checkout', operation: 'GREATER_THEN', value: period.from, joinOperator: 'AND'},
+    criteria('checkin', 'LESS_THEN', period.to),
+    criteria('checkout', 'GREATER_THEN', period.from),
   ];
 }
 

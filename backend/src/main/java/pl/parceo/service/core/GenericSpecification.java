@@ -1,5 +1,6 @@
 package pl.parceo.service.core;
 
+import jakarta.persistence.criteria.From;
 import pl.parceo.exception.ClientSideException;
 import pl.parceo.exception.UnsupportedSqlOperationException;
 import pl.parceo.exception.UserInputException;
@@ -29,17 +30,16 @@ public record GenericSpecification<S>(@NotNull SearchCriteria searchCriteria) im
             @NonNull CriteriaBuilder criteriaBuilder
     ) {
         try {
-            final var optJoinObject = Optional.ofNullable(searchCriteria.joinObject());
-            final var key = (Expression) optJoinObject
-                    .map(_ -> root.join(optJoinObject.get()).get(searchCriteria.key()))
-                    .orElseGet(() -> root.get(searchCriteria.key()));
+
+            final var key = (Expression) getNestedKey(root, searchCriteria.getObject());
+
             final var javaType = key.getJavaType();
-            final var value = parseValue(javaType, searchCriteria.value());
-            final var secondValue = Optional.ofNullable(searchCriteria.secondValue())
-                    .map(_ -> parseValue(javaType, searchCriteria.secondValue()))
+            final var value = parseValue(javaType, searchCriteria.getValue());
+            final var secondValue = Optional.ofNullable(searchCriteria.getSecondValue())
+                    .map(_ -> parseValue(javaType, searchCriteria.getSecondValue()))
                     .orElse(null);
 
-            switch (searchCriteria.operation()) {
+            switch (searchCriteria.getOperation()) {
                 case EQUALS -> {
                     return criteriaBuilder.equal(key, value);
                 }
@@ -101,6 +101,17 @@ public record GenericSpecification<S>(@NotNull SearchCriteria searchCriteria) im
         } catch (IllegalArgumentException e) {
             throw new UserInputException("Nieprawidłowa wartość filtra: " + value);
         }
+    }
 
+    public Expression<S> getNestedKey(Root<S> root, SearchCriteria.Join object) {
+        From<?, ?> current = root;
+        while (object != null) {
+            if (object.inner() == null) {
+                return current.get(object.key());
+            }
+            current = current.join(object.key());
+            object = object.inner();
+        }
+        return (Expression<S>) current;
     }
 }

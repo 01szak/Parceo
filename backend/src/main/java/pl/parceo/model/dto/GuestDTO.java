@@ -1,10 +1,12 @@
 package pl.parceo.model.dto;
 
+import lombok.Builder;
 import pl.parceo.service.validator.CountryIso;
 import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.Email;
 
 
+@Builder
 public record GuestDTO (
     @Nullable Integer id,
     @Nullable String firstname,

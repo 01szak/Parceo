@@ -6,6 +6,7 @@ import {DataVersionService} from '@core/services/openapiwrappers/data-version.se
 import {Page} from '@core/models/Page';
 import {blockStarts, CalendarWindow} from '@shared/domain/calendar-window';
 import {addDays} from '@shared/domain/stay-range';
+import {criteria} from '@shared/domain/search-criteria';
 
 interface BlockState {
   reservations: ReservationDto[];
@@ -16,8 +17,8 @@ interface BlockState {
 //every stay that shares a night with [from, to), also those that started before it
 function overlapping(from: string, to: string): SearchCriteria[] {
   return [
-    {key: 'checkin', operation: 'LESS_THEN', value: to, joinOperator: 'AND'},
-    {key: 'checkout', operation: 'GREATER_THEN', value: from, joinOperator: 'AND'},
+    criteria('checkin', 'LESS_THEN', to),
+    criteria('checkout', 'GREATER_THEN', from),
   ];
 }
 

@@ -74,10 +74,10 @@ public class StatisticsServiceIT extends BaseIT {
                 .withFailMessage("country distribution should contains x count equal to distinct countries count");
 
         createReservation(
-                camperPlaceService.findBy(SearchCriteria.builder().key("index").operation(Operation.EQUALS).value("1").build()).stream().findFirst().get(),
+                camperPlaceService.findBy(SearchCriteria.builder().object(new SearchCriteria.Join("index")).operation(Operation.EQUALS).value("1").buildArray()).stream().findFirst().get(),
                 LocalDate.parse("2030-01-06"),
                 LocalDate.parse("2030-01-08"),
-                guestService.findBy(SearchCriteria.builder().key("firstname").operation(Operation.EQUALS).value("GUEST_FN1").build()).stream().findFirst().get(),
+                guestService.findBy(SearchCriteria.builder().object(new SearchCriteria.Join("firstname")).operation(Operation.EQUALS).value("GUEST_FN1").buildArray()).stream().findFirst().get(),
                 false
         );
         assertThat(statisticsService.getGuestPerCountry(01, 2030).get(0).usersCount() == 1).isTrue()

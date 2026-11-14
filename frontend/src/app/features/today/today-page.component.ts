@@ -17,12 +17,13 @@ import {availabilityPerDay, DayAvailability, freeNightsInARow, Stay} from '@shar
 import {arrivalsSentence, unpaidSentence} from '@shared/domain/today-summary';
 import {addDays, nightsBetween, nightsLabel} from '@shared/domain/stay-range';
 import {formatPln} from '@shared/domain/money';
+import {criteria} from '@shared/domain/search-criteria';
 import {TodayService} from '@core/services/TodayService';
 
 //occupancy is loaded for the longest strip range
 const OCCUPANCY_HORIZON = 30;
 
-const equals = (key: string, value: string): SearchCriteria => ({key, operation: 'EQUALS', value, joinOperator: 'AND'});
+const equals = (key: string, value: string): SearchCriteria => criteria(key, 'EQUALS', value);
 
 @Component({
   selector: 'app-today-page',
@@ -87,10 +88,10 @@ export class TodayPageComponent {
         this.arrivals.criteria.set([equals('checkin', today)]);
         this.departures.criteria.set([equals('checkout', today)]);
         //guests already on site or arriving today who have not paid yet
-        this.unpaid.criteria.set([equals('paid', 'false'), {key: 'checkin', operation: 'LESS_THEN', value: addDays(today, 1), joinOperator: 'AND'}]);
+        this.unpaid.criteria.set([equals('paid', 'false'), criteria('checkin', 'LESS_THEN', addDays(today, 1))]);
         this.occupancy.criteria.set([
-          {key: 'checkin', operation: 'LESS_THEN', value: addDays(today, OCCUPANCY_HORIZON), joinOperator: 'AND'},
-          {key: 'checkout', operation: 'GREATER_THEN', value: today, joinOperator: 'AND'},
+          criteria('checkin', 'LESS_THEN', addDays(today, OCCUPANCY_HORIZON)),
+          criteria('checkout', 'GREATER_THEN', today),
         ]);
       });
     });

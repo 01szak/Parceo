@@ -72,7 +72,7 @@ class WebAppReservationTaskTest {
         final var entity = createWebAppReservationTaskEntity(new WebAppReservationPayload(reservationDto(guestDto(null), creatorDto()), SupportedLocale.pl));
         final var task = new WebAppReservationTask(reservationService, taskService, guestService, entity);
 
-        when(guestService.findBy(any(SearchCriteria.class))).thenReturn(Page.empty());
+        when(guestService.findBy(any(SearchCriteria[].class))).thenReturn(Page.empty());
         when(reservationService.create(any(ReservationDTO.class))).thenReturn(persistedReservation(100));
 
         task.doTask();
@@ -107,7 +107,7 @@ class WebAppReservationTaskTest {
         final var task = new WebAppReservationTask(reservationService, taskService, guestService, entity);
 
         final var existingGuest = Guest.builder().id(7).email("ada@example.com").firstname("Ada").build();
-        when(guestService.findBy(any(SearchCriteria.class)))
+        when(guestService.findBy(any(SearchCriteria[].class)))
                 .thenReturn(new PageImpl<>(List.of(existingGuest)));
         when(guestService.update(existingGuest)).thenReturn(existingGuest);
         when(reservationService.create(any(ReservationDTO.class))).thenReturn(persistedReservation(101));
@@ -148,7 +148,7 @@ class WebAppReservationTaskTest {
         final var entity = createWebAppReservationTaskEntity(new WebAppReservationPayload(reservationDto(guestDto(null), creatorDto()), SupportedLocale.pl));
         final var task = new WebAppReservationTask(reservationService, taskService, guestService, entity);
 
-        when(guestService.findBy(any(SearchCriteria.class))).thenReturn(Page.empty());
+        when(guestService.findBy(any(SearchCriteria[].class))).thenReturn(Page.empty());
         when(reservationService.create(any(ReservationDTO.class)))
                 .thenThrow(new DateValidationException("Parcela jest już zajęta!"));
 
