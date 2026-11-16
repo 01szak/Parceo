@@ -18,11 +18,14 @@
     <include file="database/mig/07-09-26/assign_creator_to_the_reservation.mig.sql" relativeToChangelogFile="true" context="prod"/>
     <include file="database/mig/07-09-26/assign_app_users_to_the_org.mig.sql" relativeToChangelogFile="true" context="prod"/>
 
+    <include file="database/mig/16-11-26/insert_transactions_based_on_reservation_price_mig.sql" relativeToChangelogFile="true" context="prod"/>
+
     <include file="database/demo/app_user.sql" relativeToChangelogFile="true" context="dev"/>
     <include file="database/demo/organisation.sql" relativeToChangelogFile="true" context="dev"/>
     <include file="database/demo/guest.sql" relativeToChangelogFile="true" context="dev"/>
     <include file="database/demo/camper_place_type.sql" relativeToChangelogFile="true" context="dev"/>
     <include file="database/demo/camper_place.sql" relativeToChangelogFile="true" context="dev"/>
     <include file="database/demo/reservation.sql" relativeToChangelogFile="true" context="dev"/>
+    <include file="database/demo/payment_transaction.sql" relativeToChangelogFile="true" context="dev"/>
 
 </databaseChangeLog>

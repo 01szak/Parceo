@@ -1,5 +1,5 @@
 import {ChangeDetectionStrategy, Component, computed, effect, inject, signal, untracked} from '@angular/core';
-import {toSignal} from '@angular/core/rxjs-interop';
+import {rxResource, toSignal} from '@angular/core/rxjs-interop';
 import {map, startWith} from 'rxjs';
 import {MatButton} from '@angular/material/button';
 import {MatIcon} from '@angular/material/icon';
@@ -9,13 +9,14 @@ import {ReservationDto, SearchCriteria} from '../../api';
 import {ResourceType} from '@core/services/openapiwrappers/service-facade.service';
 import {createPagedQuery, PagedQuery} from '@core/services/openapiwrappers/paged-query';
 import {CamperPlaceService} from '@core/services/openapiwrappers/CamperPlaceService';
+import {PeriodStatistics, StatisticsService} from '@core/services/openapiwrappers/StatisticsService';
 import {FormFactoryService} from '@shared/form/FormFactoryService';
 import {PageHeaderComponent} from '@shared/ui/page-header/page-header.component';
 import {EmptyStateComponent} from '@shared/ui/empty-state/empty-state.component';
 import {DateRangeFieldComponent} from '@shared/ui/date-range-field/date-range-field.component';
 import {BarChartComponent, ChartBar} from '@shared/ui/charts/bar-chart.component';
 import {DonutChartComponent, DonutSlice} from '@shared/ui/charts/donut-chart.component';
-import {buildReport, percentChange, ReportPeriod, topCountries} from '@shared/domain/reports';
+import {bucketUnit, buildReport, CountryCount, emptyBuckets, percentChange, ReportPeriod, topCountries} from '@shared/domain/reports';
 import {PeriodKind, previousPeriod, reportPeriod} from '@shared/domain/report-period';
 import {formatPln} from '@shared/domain/money';
 import {countryName} from '@shared/domain/countries';
@@ -36,6 +37,16 @@ const MONTHS_SHORT = ['sty', 'lut', 'mar', 'kwi', 'maj', 'cze', 'lip', 'sie', 'w
 const SLICE_COLORS = ['var(--chart-1)', 'var(--chart-2)', 'var(--chart-3)', 'var(--chart-4)'];
 //four countries keep their own color, the rest is one "Inne kraje" slice
 const DONUT_SLICES = 5;
+
+const NO_STATISTICS: PeriodStatistics = {
+  revenue: 0,
+  revenuePerDay: [],
+  nightsSold: 0,
+  overallOccupancy: 0,
+  occupancyByType: [],
+  guestsByCountry: [],
+  revenuePerCamperPlace: [],
+};
 
 function overlapping(period: ReportPeriod): SearchCriteria[] {
   return [
@@ -69,6 +80,7 @@ function axisAmount(value: number): string {
 })
 export class ReportsPageComponent {
   private readonly camperPlaces = inject(CamperPlaceService);
+  private readonly statistics = inject(StatisticsService);
   private readonly today = todayIso();
 
   protected readonly periods = PERIODS;
@@ -89,55 +101,95 @@ export class ReportsPageComponent {
   protected readonly waitingForDates = computed(() => this.kind() === 'custom' && !this.customValue());
 
   private readonly current = createPagedQuery<ReservationDto>(ResourceType.RESERVATION, {unpaged: true});
-  private readonly before = createPagedQuery<ReservationDto>(ResourceType.RESERVATION, {unpaged: true});
 
   private readonly places = this.camperPlaces.camperPlaces;
-  protected readonly report = computed(() => buildReport(this.current.page().content, this.places(), this.period()));
-  private readonly previousReport = computed(() => buildReport(this.before.page().content, this.places(), this.previous()));
+  private readonly report = computed(() => buildReport(this.current.page().content, this.places(), this.period()));
+
+  private readonly stats = rxResource({
+    defaultValue: NO_STATISTICS,
+    params: () => this.period(),
+    stream: () => this.statistics.getPeriodStatistics(this.period()),
+  });
+
+  private readonly previousRevenue = rxResource({
+    defaultValue: 0,
+    params: () => this.previous(),
+    stream: () => this.statistics.getRevenue(this.previous()),
+  });
+
+  protected readonly camperPlaceRevenueRows = computed(() => this.stats.value().revenuePerCamperPlace
+    .map(r => ({
+      index: r.camperPlaceIndex ?? '',
+      nightsSold: r.nightsSold ?? 0,
+      revenueText: formatPln(r.revenue ?? 0),
+      averageText: r.nightsSold ? formatPln((r.revenue ?? 0) / r.nightsSold) : '—',
+    }))
+    .sort((a, b) => a.index.localeCompare(b.index, 'pl', {numeric: true})));
 
   protected readonly loading = computed(() =>
-    this.current.loading() || this.before.loading() || this.camperPlaces.unpagedCamperPlaceResource.isLoading());
+    this.current.loading() || this.camperPlaces.unpagedCamperPlaceResource.isLoading()
+    || this.stats.isLoading() || this.previousRevenue.isLoading());
   //the previous period only feeds the comparison; until it is here (or when it failed) there is nothing to compare with
-  private readonly comparisonReady = computed(() => !this.before.loading() && !this.before.failed());
-  protected readonly failed = computed(() => this.current.failed() || this.camperPlaces.unpagedCamperPlaceResource.status() === 'error');
+  private readonly comparisonReady = computed(() =>
+    !this.previousRevenue.isLoading() && this.previousRevenue.status() !== 'error');
+  protected readonly failed = computed(() =>
+    this.current.failed() || this.camperPlaces.unpagedCamperPlaceResource.status() === 'error'
+    || this.stats.status() === 'error');
 
   protected readonly summary = computed(() => {
     const period = this.period();
-    const report = this.report();
-    const change = this.comparisonReady() ? percentChange(report.revenue, this.previousReport().revenue) : null;
+    const stats = this.stats.value();
+    const change = this.comparisonReady() ? percentChange(stats.revenue, this.previousRevenue.value()) : null;
     const comparison = change === null ? '' : change === 0
       ? `, tyle samo co ${period.comparison}`
       : `, o ${Math.abs(change)}% ${change > 0 ? 'więcej' : 'mniej'} niż ${period.comparison}`;
     return {
-      revenue: `${period.phrase} przychód wyniósł ${formatPln(report.revenue)}${comparison}.`,
-      occupancy: `Parcele były zajęte przez ${Math.round(report.occupancy * 100)}% nocy.`,
+      revenue: `${period.phrase} przychód wyniósł ${formatPln(stats.revenue)}${comparison}.`,
+      occupancy: `Parcele były zajęte przez ${Math.round(stats.overallOccupancy * 100)}% nocy.`,
     };
   });
 
   protected readonly tiles = computed(() => {
+    const stats = this.stats.value();
     const report = this.report();
     return [
-      {label: 'Przychód', value: formatPln(report.revenue), note: this.previousRevenueNote()},
-      {label: 'Sprzedane noce', value: String(report.nights), note: `na ${countLabel(this.places().length, 'parceli', 'parcelach', 'parcelach')}`},
-      {label: 'Obłożenie', value: `${Math.round(report.occupancy * 100)}%`, note: 'zajętych nocy'},
+      {label: 'Przychód', value: formatPln(stats.revenue), note: this.previousRevenueNote()},
+      {label: 'Sprzedane noce', value: String(stats.nightsSold), note: `na ${countLabel(this.places().length, 'parceli', 'parcelach', 'parcelach')}`},
+      {label: 'Obłożenie', value: `${Math.round(stats.overallOccupancy * 100)}%`, note: 'zajętych nocy'},
       {label: 'Nieopłacone', value: formatPln(report.unpaidAmount), note: countLabel(report.unpaidReservations, 'rezerwacja', 'rezerwacje', 'rezerwacji')},
     ];
   });
 
   private previousRevenueNote(): string {
-    if (this.before.failed()) return 'brak porównania z poprzednim okresem';
-    return `poprzednio ${this.comparisonReady() ? formatPln(this.previousReport().revenue) : '—'}`;
+    if (this.previousRevenue.status() === 'error') return 'brak porównania z poprzednim okresem';
+    return `poprzednio ${this.comparisonReady() ? formatPln(this.previousRevenue.value()) : '—'}`;
   }
 
+  /*
+   * The backend returns only the buckets that had a transaction, so they are merged into a zero-filled
+   * series spanning the whole period - otherwise the chart would have gaps instead of empty days.
+   */
+  private readonly revenueBuckets = computed(() => {
+    const period = this.period();
+    const unit = bucketUnit(period);
+    const buckets = emptyBuckets(period, unit);
+    const indexOf = new Map(buckets.map((bucket, i) => [bucket.start, i]));
+    this.stats.value().revenuePerDay.forEach(entry => {
+      const i = indexOf.get(entry.day ?? '');
+      if (i !== undefined) buckets[i].amount += entry.revenue ?? 0;
+    });
+    return {buckets, unit};
+  });
+
   protected readonly chartTitle = computed(() =>
-    this.report().bucketUnit === 'day' ? 'Przychód dzień po dniu' : 'Przychód miesiąc po miesiącu');
+    this.revenueBuckets().unit === 'day' ? 'Przychód dzień po dniu' : 'Przychód miesiąc po miesiącu');
 
   protected readonly chartBars = computed<ChartBar[]>(() => {
-    const {buckets, bucketUnit} = this.report();
+    const {buckets, unit} = this.revenueBuckets();
     return buckets.map((bucket, i) => {
       const day = Number(bucket.start.slice(8, 10));
       const month = Number(bucket.start.slice(5, 7));
-      const daily = bucketUnit === 'day';
+      const daily = unit === 'day';
       return {
         key: bucket.start,
         tick: daily ? (i === 0 || day % 5 === 0 ? `${day}.${String(month).padStart(2, '0')}` : '') : MONTHS_SHORT[month - 1],
@@ -149,25 +201,31 @@ export class ReportsPageComponent {
   });
   protected readonly formatAxis = axisAmount;
 
-  protected readonly typeRows = computed(() => this.report().byType.map(type => ({
-    ...type,
-    occupancyPercent: Math.round(type.occupancy * 100),
-    revenueText: formatPln(type.revenue),
-    averageText: type.nights ? formatPln(type.revenue / type.nights) : '—',
-  })));
+  protected readonly typeRows = computed(() => this.stats.value().occupancyByType
+    .map(type => ({
+      typeName: type.typeName ?? '',
+      occupancyPercent: Math.round((type.occupancy ?? 0) * 100),
+    }))
+    .sort((a, b) => a.typeName.localeCompare(b.typeName, 'pl')));
 
   protected readonly totals = computed(() => {
-    const report = this.report();
+    const rows = this.stats.value().revenuePerCamperPlace;
+    const nights = rows.reduce((sum, r) => sum + (r.nightsSold ?? 0), 0);
+    const revenue = rows.reduce((sum, r) => sum + (r.revenue ?? 0), 0);
     return {
-      places: this.places().length,
-      nights: report.nights,
-      average: report.nights ? formatPln(report.revenue / report.nights) : '—',
-      revenue: formatPln(report.revenue),
+      places: rows.length,
+      nights,
+      average: nights ? formatPln(revenue / nights) : '—',
+      revenue: formatPln(revenue),
     };
   });
 
+  private readonly countries = computed<CountryCount[]>(() => this.stats.value().guestsByCountry
+    .map(c => ({country: c.country ?? '', guests: c.guestCount ?? 0}))
+    .sort((a, b) => b.guests - a.guests));
+
   protected readonly countrySlices = computed<DonutSlice[]>(() =>
-    topCountries(this.report().countries, DONUT_SLICES).map((c, i) => ({
+    topCountries(this.countries(), DONUT_SLICES).map((c, i) => ({
       key: c.country ?? 'other',
       label: c.country === null ? 'Inne kraje' : countryName(c.country) || 'Nie podano',
       value: c.guests,
@@ -178,14 +236,9 @@ export class ReportsPageComponent {
   constructor() {
     //set right away, otherwise the first request would ask for every reservation before the effect runs
     this.current.criteria.set(overlapping(this.period()));
-    this.before.criteria.set(overlapping(this.previous()));
     effect(() => {
       const current = overlapping(this.period());
-      const before = overlapping(this.previous());
-      untracked(() => {
-        this.setCriteria(this.current, current);
-        this.setCriteria(this.before, before);
-      });
+      untracked(() => this.setCriteria(this.current, current));
     });
   }
 

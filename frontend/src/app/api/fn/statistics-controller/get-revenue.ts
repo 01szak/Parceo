@@ -7,18 +7,17 @@ import { filter, map } from 'rxjs/operators';
 import { StrictHttpResponse } from '../../strict-http-response';
 import { RequestBuilder } from '../../request-builder';
 
-import { Revenue } from '../../models/revenue';
 
 export interface GetRevenue$Params {
-  month: number;
-  year: number;
+  from: string;
+  to: string;
 }
 
-export function getRevenue(http: HttpClient, rootUrl: string, params: GetRevenue$Params, context?: HttpContext): Observable<StrictHttpResponse<Array<Array<Revenue>>>> {
+export function getRevenue(http: HttpClient, rootUrl: string, params: GetRevenue$Params, context?: HttpContext): Observable<StrictHttpResponse<number>> {
   const rb = new RequestBuilder(rootUrl, getRevenue.PATH, 'get');
   if (params) {
-    rb.path('month', params.month, {});
-    rb.path('year', params.year, {});
+    rb.path('from', params.from, {});
+    rb.path('to', params.to, {});
   }
 
   return http.request(
@@ -26,9 +25,9 @@ export function getRevenue(http: HttpClient, rootUrl: string, params: GetRevenue
   ).pipe(
     filter((r: any): r is HttpResponse<any> => r instanceof HttpResponse),
     map((r: HttpResponse<any>) => {
-      return r as StrictHttpResponse<Array<Array<Revenue>>>;
+      return (r as HttpResponse<any>).clone({ body: parseFloat(String((r as HttpResponse<any>).body)) }) as StrictHttpResponse<number>;
     })
   );
 }
 
-getRevenue.PATH = '/statistics/revenue/{month}/{year}';
+getRevenue.PATH = '/statistics/revenue/{from}/{to}';

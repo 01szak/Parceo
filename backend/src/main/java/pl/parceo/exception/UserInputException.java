@@ -15,5 +15,10 @@ public class UserInputException extends RuntimeException {
         return super.getMessage();
     }
 
+    public static void checkClientInput(boolean condition, String errorMessage) {
+        if (condition) {
+            throw new UserInputException(errorMessage);
+        }
+    }
 }
 
