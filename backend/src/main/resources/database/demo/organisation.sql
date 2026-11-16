@@ -1,5 +1,7 @@
 -- liquibase formatted sql
+
 -- changeset 01szak:organisation_demo context:dev
+-- validCheckSum: ANY
 -- preconditions onFail:MARK_RAN
 -- precondition-sql-check expectedResult:0 SELECT COUNT(*) FROM organisation
 
@@ -8,5 +10,4 @@ INSERT INTO organisation (id, owner_id, organisation_name, address, phone_number
 VALUES
     (1, 1, 'Leśna Polana', 'ul. Leśna 1, 76-032 Mielno', '+48 600 100 200', 'kontakt@lesnapolana.example.com', 'dev-website-key-not-bcrypt', NOW(), NOW());
 
-UPDATE app_user SET organisation_id = 1 WHERE id IN (1, 2);
-
+UPDATE app_user SET organisation_id = 1 WHERE id IN (1, 2, 3, 4);
