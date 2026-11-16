@@ -65,3 +65,5 @@ export type { GetGuestPerCountryDistribution$Params as GetGuestPerCountryDistrib
 export { getGuestPerCountryDistribution as getGuestPerCountryDistribution } from './fn/statistics-controller/get-guest-per-country-distribution';
 export type { GetRevenuePerCamperPlace$Params as GetRevenuePerCamperPlace$Params } from './fn/statistics-controller/get-revenue-per-camper-place';
 export { getRevenuePerCamperPlace as getRevenuePerCamperPlace } from './fn/statistics-controller/get-revenue-per-camper-place';
+export type { GetRevenuePerDay$Params as GetRevenuePerDay$Params } from './fn/statistics-controller/get-revenue-per-day';
+export { getRevenuePerDay as getRevenuePerDay } from './fn/statistics-controller/get-revenue-per-day';

@@ -54,7 +54,7 @@
   <div class="two-columns">
     <section class="card" aria-labelledby="occupancy-title">
       <h2 id="occupancy-title">Obłożenie według rodzaju parceli</h2>
-      @for (type of typeRows(); track type.typeId) {
+      @for (type of typeRows(); track type.typeName) {
         <div class="meter-row">
           <span class="meter-label">{{ type.typeName }}</span>
           <span class="meter" role="meter" [attr.aria-valuenow]="type.occupancyPercent" aria-valuemin="0" aria-valuemax="100"
@@ -77,43 +77,6 @@
       }
     </section>
   </div>
-
-  <section class="card" aria-labelledby="revenue-title">
-    <h2 id="revenue-title">Przychód według rodzaju parceli</h2>
-    <div class="table-scroll">
-      <table>
-        <thead>
-          <tr>
-            <th scope="col">Rodzaj parceli</th>
-            <th scope="col" class="end">Parcele</th>
-            <th scope="col" class="end">Sprzedane noce</th>
-            <th scope="col" class="end">Średnio za noc</th>
-            <th scope="col" class="end">Przychód</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (type of typeRows(); track type.typeId) {
-            <tr>
-              <th scope="row">{{ type.typeName }}</th>
-              <td class="end">{{ type.places }}</td>
-              <td class="end">{{ type.nights }}</td>
-              <td class="end">{{ type.averageText }}</td>
-              <td class="end strong">{{ type.revenueText }}</td>
-            </tr>
-          }
-        </tbody>
-        <tfoot>
-          <tr>
-            <th scope="row">Razem</th>
-            <td class="end">{{ totals().places }}</td>
-            <td class="end">{{ totals().nights }}</td>
-            <td class="end">{{ totals().average }}</td>
-            <td class="end">{{ totals().revenue }}</td>
-          </tr>
-        </tfoot>
-      </table>
-    </div>
-  </section>
 
   <section class="card" aria-labelledby="revenue-per-place-title">
     <h2 id="revenue-per-place-title">Przychód według parceli</h2>
@@ -141,6 +104,16 @@
             </tr>
           }
         </tbody>
+        @if (camperPlaceRevenueRows().length) {
+          <tfoot>
+            <tr>
+              <th scope="row">Razem</th>
+              <td class="end">{{ totals().nights }}</td>
+              <td class="end">{{ totals().average }}</td>
+              <td class="end">{{ totals().revenue }}</td>
+            </tr>
+          </tfoot>
+        }
       </table>
     </div>
   </section>

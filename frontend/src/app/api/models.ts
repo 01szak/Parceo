@@ -17,6 +17,7 @@ export type { PageReservationDto } from './models/page-reservation-dto';
 export type { ReservationDto } from './models/reservation-dto';
 export type { ResInitRequest } from './models/res-init-request';
 export type { RevenuePerCamperPlace } from './models/revenue-per-camper-place';
+export type { RevenuePerDay } from './models/revenue-per-day';
 export type { SearchCriteria } from './models/search-criteria';
 export type { SearchRequest } from './models/search-request';
 export type { Sortnull } from './models/sortnull';
