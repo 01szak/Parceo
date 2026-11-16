@@ -2,39 +2,42 @@ package pl.parceo.service.core;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import pl.parceo.model.dto.GuestCountPerCountry;
+import pl.parceo.model.dto.OccupancyPerCamperPlaceType;
+import pl.parceo.model.dto.RevenuePerCamperPlace;
+import pl.parceo.repository.StatisticsRepository;
 
-import java.math.BigDecimal;
+import java.sql.Date;
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class StatisticsService {
 
-    private final ReservationService reservationService;
-    private final GuestService guestService;
+    private final StatisticsRepository statisticsRepository;
 
-    public static class StatisticsModel {
-        public record Revenue (String cpIndex, long count, BigDecimal revenue) {}
-        public record CountryDistribution (String countryIsoCode, long usersCount) {}
+    public double getRevenue(LocalDate from, LocalDate to) {
+        return statisticsRepository.getRevenue(Date.valueOf(from), Date.valueOf(to));
     }
 
-    public List<StatisticsModel.CountryDistribution> getGuestPerCountry() {
-        return getGuestPerCountry(0, 0);
+    public long getNightsSold(LocalDate from, LocalDate to) {
+        return statisticsRepository.getNightsSold(from, to);
     }
 
-    public List<StatisticsModel.CountryDistribution> getGuestPerCountry(int month, int year) {
-        return guestService.getCountryDistribution(month, year);
+    public double getOverallOccupancy(LocalDate from, LocalDate to) {
+        return statisticsRepository.getOverallOccupancy(from, to);
     }
 
-    public List<List<StatisticsModel.Revenue>> getRevenue() {
-        return getRevenue(0, 0);
+    public List<OccupancyPerCamperPlaceType> getOccupancyByCamperPlaceType(LocalDate from, LocalDate to) {
+        return statisticsRepository.getOccupancyByCamperPlaceType(from, to);
     }
 
-    public List<List<StatisticsModel.Revenue>> getRevenue(int month, int year) {
-        return List.of(
-                reservationService.countRevenueOfAllCamperPlaces(true, month, year),
-                reservationService.countRevenueOfAllCamperPlaces(false, month, year)
-        );
+    public List<GuestCountPerCountry> getGuestPerCountryDistribution(LocalDate from, LocalDate to) {
+        return statisticsRepository.getGuestPerCountryDistribution(from, to);
     }
 
+    public List<RevenuePerCamperPlace> getRevenuePerCamperPlace(LocalDate from, LocalDate to) {
+        return statisticsRepository.getRevenuePerCamperPlace(from, to);
+    }
 }

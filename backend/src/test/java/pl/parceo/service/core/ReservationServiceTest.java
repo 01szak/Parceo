@@ -12,8 +12,10 @@ import pl.parceo.model.entity.CamperPlace;
 import pl.parceo.model.entity.CamperPlaceType;
 import pl.parceo.model.entity.Guest;
 import pl.parceo.model.entity.Reservation;
+import pl.parceo.model.entity.ReservationTransaction;
 import pl.parceo.model.entity.User;
 import pl.parceo.repository.ReservationRepository;
+import pl.parceo.service.paymnet_transaction.TransactionService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -28,10 +30,12 @@ import java.time.LocalDate;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -52,6 +56,9 @@ public class ReservationServiceTest {
 
     @Mock
     private UserService userService;
+
+    @Mock
+    private TransactionService transactionService;
 
     @InjectMocks
     private ReservationService reservationService;
@@ -270,6 +277,7 @@ public class ReservationServiceTest {
         when(camperPlaceService.findById(1)).thenReturn(defaultCamperPlace);
         when(reservationRepository.findById(10)).thenReturn(Optional.of(existingReservation));
         when(guestService.update(updatedGuestDto)).thenReturn(updatedGuest);
+        when(reservationRepository.save(any(Reservation.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         // When
         reservationService.update(updateDto);
@@ -315,6 +323,7 @@ public class ReservationServiceTest {
         when(camperPlaceService.hasOverlappingReservation(1, newCheckin, newCheckout, 10)).thenReturn(false);
         when(calculator.calculate(DEFAULT_PRICE, 4L)).thenReturn(BigDecimal.valueOf(400));
         when(guestService.update(guestDto)).thenReturn(defaultGuest);
+        when(reservationRepository.save(any(Reservation.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         // When
         reservationService.update(updateDto);
@@ -396,6 +405,125 @@ public class ReservationServiceTest {
                 .hasMessage("Data wyjazdu nie może być przed datą wjazdu");
 
         verify(reservationRepository, never()).save(any(Reservation.class));
+    }
+
+    @Test
+    public void shouldThrowExceptionWhenRevertingPaymentStatus() {
+        // Given - reservation is already paid, update tries to flip it back to unpaid
+        final var checkin = LocalDate.now().plusDays(3);
+        final var checkout = LocalDate.now().plusDays(7);
+        final var existingReservation = createExistingReservation(10, checkin, checkout, defaultCamperPlace, defaultGuest, true);
+
+        final var updateDto = ReservationDTO.builder()
+                .id(10)
+                .checkin(checkin)
+                .checkout(checkout)
+                .guest(createGuestDto(1))
+                .camperPlace(createCamperPlaceDto(1, "1"))
+                .paid(false)
+                .reservationStatus(ReservationStatus.COMING)
+                .price(100D)
+                .build();
+
+        when(camperPlaceService.findById(1)).thenReturn(defaultCamperPlace);
+        when(reservationRepository.findById(10)).thenReturn(Optional.of(existingReservation));
+
+        // When & Then
+        assertThatThrownBy(() -> reservationService.update(updateDto))
+                .isInstanceOf(UserInputException.class)
+                .hasMessage("Nie można cofnąć statusu płatności. W przypadku zwrotu należy usunąć rezerwację.");
+
+        verify(reservationRepository, never()).save(any(Reservation.class));
+        verify(transactionService, never()).create(any());
+    }
+
+    @Test
+    public void shouldNotThrowWhenPaymentStatusStaysPaidOnUpdate() {
+        // Given - reservation is already paid and stays paid (no reversion attempted)
+        final var checkin = LocalDate.now().plusDays(3);
+        final var checkout = LocalDate.now().plusDays(7);
+        final var existingReservation = createExistingReservation(10, checkin, checkout, defaultCamperPlace, defaultGuest, true);
+
+        final var updateDto = ReservationDTO.builder()
+                .id(10)
+                .checkin(checkin)
+                .checkout(checkout)
+                .guest(createGuestDto(1))
+                .camperPlace(createCamperPlaceDto(1, "1"))
+                .paid(true)
+                .reservationStatus(ReservationStatus.COMING)
+                .price(100D)
+                .build();
+
+        when(camperPlaceService.findById(1)).thenReturn(defaultCamperPlace);
+        when(reservationRepository.findById(10)).thenReturn(Optional.of(existingReservation));
+        when(guestService.update(any(GuestDTO.class))).thenReturn(defaultGuest);
+        when(reservationRepository.save(any(Reservation.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        // When & Then
+        assertThatCode(() -> reservationService.update(updateDto)).doesNotThrowAnyException();
+    }
+
+    @Test
+    public void shouldNotCreateDuplicateTransactionWhenAlreadyPaidReservationIsUpdatedAgain() {
+        // Given - reservation is already paid; this update only changes notes, paid stays true
+        final var checkin = LocalDate.now().plusDays(3);
+        final var checkout = LocalDate.now().plusDays(7);
+        final var existingReservation = createExistingReservation(10, checkin, checkout, defaultCamperPlace, defaultGuest, true);
+
+        final var updateDto = ReservationDTO.builder()
+                .id(10)
+                .checkin(checkin)
+                .checkout(checkout)
+                .guest(createGuestDto(1))
+                .camperPlace(createCamperPlaceDto(1, "1"))
+                .paid(true)
+                .reservationStatus(ReservationStatus.COMING)
+                .notes("updated notes")
+                .price(100D)
+                .build();
+
+        when(camperPlaceService.findById(1)).thenReturn(defaultCamperPlace);
+        when(reservationRepository.findById(10)).thenReturn(Optional.of(existingReservation));
+        when(guestService.update(any(GuestDTO.class))).thenReturn(defaultGuest);
+        when(reservationRepository.save(any(Reservation.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        // When
+        reservationService.update(updateDto);
+
+        // Then - regression check: a transaction used to be created on EVERY update where paid=true,
+        // even when the reservation had already been paid before this particular update.
+        verify(transactionService, never()).create(any());
+    }
+
+    @Test
+    public void shouldCreateTransactionWhenReservationBecomesPaidOnUpdate() {
+        // Given - reservation is unpaid and this update marks it as paid
+        final var checkin = LocalDate.now().plusDays(3);
+        final var checkout = LocalDate.now().plusDays(7);
+        final var existingReservation = createExistingReservation(10, checkin, checkout, defaultCamperPlace, defaultGuest, false);
+
+        final var updateDto = ReservationDTO.builder()
+                .id(10)
+                .checkin(checkin)
+                .checkout(checkout)
+                .guest(createGuestDto(1))
+                .camperPlace(createCamperPlaceDto(1, "1"))
+                .paid(true)
+                .reservationStatus(ReservationStatus.COMING)
+                .price(100D)
+                .build();
+
+        when(camperPlaceService.findById(1)).thenReturn(defaultCamperPlace);
+        when(reservationRepository.findById(10)).thenReturn(Optional.of(existingReservation));
+        when(guestService.update(any(GuestDTO.class))).thenReturn(defaultGuest);
+        when(reservationRepository.save(any(Reservation.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        // When
+        reservationService.update(updateDto);
+
+        // Then
+        verify(transactionService, times(1)).create(any(ReservationTransaction.class));
     }
 
     private GuestDTO createGuestDto(Integer id) {

@@ -32,6 +32,7 @@ import org.springframework.security.web.DefaultSecurityFilterChain;
 
 import java.util.Arrays;
 
+import static pl.parceo.model.constant.UserRole.OWNER;
 import static pl.parceo.model.constant.UserRole.WEB_APP;
 
 @Configuration
@@ -58,6 +59,7 @@ public class SecurityConfig {
             "/web/reservation/init",
             "/web/reservation/verify/**",
     };
+    private static final String[] GET_OWNER_PATHS = new String[] { "/statistics/**" };
     private static final String[] POST_AUTHENTICATED_PATHS = new String[] {"/reservation"};
 
     private static final String[] ALL_AUTHORITIES_WITHOUT_WEB_APP =
@@ -117,6 +119,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, POST_AUTHENTICATED_PATHS).hasAnyAuthority(ALL_AUTHORITIES_WITHOUT_WEB_APP)
                         .requestMatchers(HttpMethod.GET, GET_AUTHENTICATED_PATHS).hasAnyAuthority(ALL_AUTHORITIES)
                         .requestMatchers(HttpMethod.POST, POST_WEB_APP_PATHS).hasAnyAuthority(WEB_APP.getAuthority())
+                        .requestMatchers(HttpMethod.GET, GET_OWNER_PATHS).hasAnyAuthority(OWNER.getAuthority())
                         .anyRequest().hasAnyAuthority(ALL_AUTHORITIES_WITHOUT_WEB_APP)
                 )
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
