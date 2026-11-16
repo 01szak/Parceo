@@ -3,10 +3,11 @@
 
 export type { CamperPlaceDto } from './models/camper-place-dto';
 export type { CamperPlaceTypeDto } from './models/camper-place-type-dto';
-export type { CountryDistribution } from './models/country-distribution';
+export type { GuestCountPerCountry } from './models/guest-count-per-country';
 export type { GuestDto } from './models/guest-dto';
 export type { Join } from './models/join';
 export type { LoginRequest } from './models/login-request';
+export type { OccupancyPerCamperPlaceType } from './models/occupancy-per-camper-place-type';
 export type { OrganisationDto } from './models/organisation-dto';
 export type { Pageable } from './models/pageable';
 export type { Pageablenull } from './models/pageablenull';
@@ -15,7 +16,7 @@ export type { PageGuestDto } from './models/page-guest-dto';
 export type { PageReservationDto } from './models/page-reservation-dto';
 export type { ReservationDto } from './models/reservation-dto';
 export type { ResInitRequest } from './models/res-init-request';
-export type { Revenue } from './models/revenue';
+export type { RevenuePerCamperPlace } from './models/revenue-per-camper-place';
 export type { SearchCriteria } from './models/search-criteria';
 export type { SearchRequest } from './models/search-request';
 export type { Sortnull } from './models/sortnull';

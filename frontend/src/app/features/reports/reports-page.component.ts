@@ -1,14 +1,15 @@
 import {ChangeDetectionStrategy, Component, computed, effect, inject, signal, untracked} from '@angular/core';
-import {toSignal} from '@angular/core/rxjs-interop';
+import {rxResource, toSignal} from '@angular/core/rxjs-interop';
 import {map, startWith} from 'rxjs';
 import {MatButton} from '@angular/material/button';
 import {MatIcon} from '@angular/material/icon';
 import {MatChipListbox, MatChipListboxChange, MatChipOption} from '@angular/material/chips';
 import {MatProgressBar} from '@angular/material/progress-bar';
-import {ReservationDto, SearchCriteria} from '../../api';
+import {ReservationDto, RevenuePerCamperPlace, SearchCriteria} from '../../api';
 import {ResourceType} from '@core/services/openapiwrappers/service-facade.service';
 import {createPagedQuery, PagedQuery} from '@core/services/openapiwrappers/paged-query';
 import {CamperPlaceService} from '@core/services/openapiwrappers/CamperPlaceService';
+import {StatisticsService} from '@core/services/openapiwrappers/StatisticsService';
 import {FormFactoryService} from '@shared/form/FormFactoryService';
 import {PageHeaderComponent} from '@shared/ui/page-header/page-header.component';
 import {EmptyStateComponent} from '@shared/ui/empty-state/empty-state.component';
@@ -20,7 +21,7 @@ import {PeriodKind, previousPeriod, reportPeriod} from '@shared/domain/report-pe
 import {formatPln} from '@shared/domain/money';
 import {countryName} from '@shared/domain/countries';
 import {countLabel} from '@shared/domain/plural';
-import {nightsBetween, nightsOf} from '@shared/domain/stay-range';
+import {addDays, nightsBetween, nightsOf} from '@shared/domain/stay-range';
 import {toCsv} from '@shared/domain/csv';
 import {todayIso} from '@shared/domain/iso-date';
 import {criteria} from '@shared/domain/search-criteria';
@@ -69,6 +70,7 @@ function axisAmount(value: number): string {
 })
 export class ReportsPageComponent {
   private readonly camperPlaces = inject(CamperPlaceService);
+  private readonly statistics = inject(StatisticsService);
   private readonly today = todayIso();
 
   protected readonly periods = PERIODS;
@@ -95,8 +97,31 @@ export class ReportsPageComponent {
   protected readonly report = computed(() => buildReport(this.current.page().content, this.places(), this.period()));
   private readonly previousReport = computed(() => buildReport(this.before.page().content, this.places(), this.previous()));
 
+  //revenue per individual camper place (not by type, that one is computed client-side above): the backend
+  //already groups actual paid transactions by camper place, which is exactly what belongs in a per-place table
+  private readonly camperPlaceRevenueResource = rxResource({
+    defaultValue: [] as RevenuePerCamperPlace[],
+    params: () => this.period(),
+    stream: () => {
+      const period = this.period();
+      //the backend's range is inclusive on both ends, the report period's `to` is exclusive
+      return this.statistics.getRevenuePerCamperPlace(period.from, addDays(period.to, -1));
+    },
+  });
+
+  protected readonly camperPlaceRevenueRows = computed(() =>
+    [...this.camperPlaceRevenueResource.value()]
+      .map(r => ({
+        index: r.camperPlaceIndex ?? '',
+        nightsSold: r.nightsSold ?? 0,
+        revenueText: formatPln(r.revenue ?? 0),
+        averageText: r.nightsSold ? formatPln((r.revenue ?? 0) / r.nightsSold) : '—',
+      }))
+      .sort((a, b) => a.index.localeCompare(b.index, 'pl', {numeric: true})));
+
   protected readonly loading = computed(() =>
-    this.current.loading() || this.before.loading() || this.camperPlaces.unpagedCamperPlaceResource.isLoading());
+    this.current.loading() || this.before.loading() || this.camperPlaces.unpagedCamperPlaceResource.isLoading()
+    || this.camperPlaceRevenueResource.isLoading());
   //the previous period only feeds the comparison; until it is here (or when it failed) there is nothing to compare with
   private readonly comparisonReady = computed(() => !this.before.loading() && !this.before.failed());
   protected readonly failed = computed(() => this.current.failed() || this.camperPlaces.unpagedCamperPlaceResource.status() === 'error');

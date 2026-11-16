@@ -114,4 +114,34 @@
       </table>
     </div>
   </section>
+
+  <section class="card" aria-labelledby="revenue-per-place-title">
+    <h2 id="revenue-per-place-title">Przychód według parceli</h2>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th scope="col">Parcela</th>
+            <th scope="col" class="end">Sprzedane noce</th>
+            <th scope="col" class="end">Średnio za noc</th>
+            <th scope="col" class="end">Przychód</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (place of camperPlaceRevenueRows(); track place.index) {
+            <tr>
+              <th scope="row">{{ place.index }}</th>
+              <td class="end">{{ place.nightsSold }}</td>
+              <td class="end">{{ place.averageText }}</td>
+              <td class="end strong">{{ place.revenueText }}</td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="4" class="hint">Brak opłaconych rezerwacji w tym okresie.</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
 }
