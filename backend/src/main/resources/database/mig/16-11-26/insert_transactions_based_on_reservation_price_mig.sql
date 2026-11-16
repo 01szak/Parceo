@@ -12,7 +12,7 @@ SELECT r.created_at, r.updated_at, 'PLN', r.price, 'RESERVATION_PAYMENT', org.id
 FROM reservation as r
 JOIN app_user as u on r.creator_id = u.id
 JOIN organisation as org on u.organisation_id = org.id
-WHERE r.paid = TRUE
+WHERE r.is_paid = TRUE
 ORDER BY r.id;
 
 INSERT INTO reservation_payment_transaction(id, reservation_id)
@@ -20,6 +20,6 @@ SELECT @start_id - 1 + ROW_NUMBER() OVER (ORDER BY r.id), r.id
 FROM reservation r
 JOIN app_user as u on r.creator_id = u.id
 JOIN organisation as org on u.organisation_id = org.id
-WHERE r.paid = TRUE
+WHERE r.is_paid = TRUE
 ORDER BY r.id;
 
