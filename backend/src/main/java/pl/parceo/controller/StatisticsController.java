@@ -1,8 +1,10 @@
 package pl.parceo.controller;
 
+import pl.parceo.model.constant.RevenueGranularity;
 import pl.parceo.model.dto.GuestCountPerCountry;
 import pl.parceo.model.dto.OccupancyPerCamperPlaceType;
 import pl.parceo.model.dto.RevenuePerCamperPlace;
+import pl.parceo.model.dto.RevenuePerDay;
 import pl.parceo.service.core.StatisticsService;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -24,6 +26,12 @@ public class StatisticsController {
     @GetMapping("/revenue/{from}/{to}")
     public double getRevenue(@PathVariable LocalDate from, @PathVariable LocalDate to) throws ParseException {
         return statisticsService.getRevenue(from, to);
+    }
+
+    @GetMapping("/revenue-per-day/{from}/{to}/{granularity}")
+    public List<RevenuePerDay> getRevenuePerDay(
+            @PathVariable LocalDate from, @PathVariable LocalDate to, @PathVariable RevenueGranularity granularity) {
+        return statisticsService.getRevenuePerDay(from, to, granularity);
     }
 
     @GetMapping("/nights-sold/{from}/{to}")

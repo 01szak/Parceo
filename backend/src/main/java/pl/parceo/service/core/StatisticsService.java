@@ -2,9 +2,11 @@ package pl.parceo.service.core;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import pl.parceo.model.constant.RevenueGranularity;
 import pl.parceo.model.dto.GuestCountPerCountry;
 import pl.parceo.model.dto.OccupancyPerCamperPlaceType;
 import pl.parceo.model.dto.RevenuePerCamperPlace;
+import pl.parceo.model.dto.RevenuePerDay;
 import pl.parceo.repository.StatisticsRepository;
 
 import java.sql.Date;
@@ -19,6 +21,10 @@ public class StatisticsService {
 
     public double getRevenue(LocalDate from, LocalDate to) {
         return statisticsRepository.getRevenue(Date.valueOf(from), Date.valueOf(to));
+    }
+
+    public List<RevenuePerDay> getRevenuePerDay(LocalDate from, LocalDate to, RevenueGranularity granularity) {
+        return statisticsRepository.getRevenuePerDay(Date.valueOf(from), Date.valueOf(to), granularity.getPattern());
     }
 
     public long getNightsSold(LocalDate from, LocalDate to) {
