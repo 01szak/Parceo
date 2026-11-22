@@ -70,7 +70,11 @@ function monthStart(iso: string): string {
   return `${iso.slice(0, 7)}-01`;
 }
 
-function emptyBuckets(period: ReportPeriod, unit: 'day' | 'month'): RevenueBucket[] {
+export function bucketUnit(period: ReportPeriod): 'day' | 'month' {
+  return nightsBetween(period.from, period.to) > DAILY_LIMIT ? 'month' : 'day';
+}
+
+export function emptyBuckets(period: ReportPeriod, unit: 'day' | 'month'): RevenueBucket[] {
   const buckets: RevenueBucket[] = [];
   for (let day = period.from; day < period.to; day = addDays(day, 1)) {
     const start = unit === 'day' ? day : monthStart(day);
@@ -83,13 +87,13 @@ export function buildReport(reservations: readonly ReservationDto[], places: rea
   const days = nightsBetween(period.from, period.to);
   const shares = reservations.map(r => shareInPeriod(r, period)).filter((s): s is Share => s !== null);
 
-  const bucketUnit = days > DAILY_LIMIT ? 'month' : 'day';
-  const buckets = emptyBuckets(period, bucketUnit);
+  const unit = bucketUnit(period);
+  const buckets = emptyBuckets(period, unit);
   const bucketIndex = new Map(buckets.map((b, i) => [b.start, i]));
   shares.forEach(share => {
     const perNight = share.amount / share.nights.length;
     share.nights.forEach(night => {
-      buckets[bucketIndex.get(bucketUnit === 'day' ? night : monthStart(night))!].amount += perNight;
+      buckets[bucketIndex.get(unit === 'day' ? night : monthStart(night))!].amount += perNight;
     });
   });
 
@@ -131,7 +135,7 @@ export function buildReport(reservations: readonly ReservationDto[], places: rea
     unpaidAmount: unpaid.reduce((sum, s) => sum + s.amount, 0),
     unpaidReservations: unpaid.length,
     buckets,
-    bucketUnit,
+    bucketUnit: unit,
     byType,
     countries,
   };

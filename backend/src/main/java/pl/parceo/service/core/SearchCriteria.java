@@ -58,9 +58,8 @@ public class SearchCriteria {
             Use this method for criteria chaining
          */
         public SearchCriteria[] buildArray() {
-            if (searchCriteriaList.isEmpty()) {
-                searchCriteriaList.add(new SearchCriteria(this.object, this.operation, this.value, this.secondValue, this.joinOperator));
-            }
+            //Add pending criteria
+            searchCriteriaList.add(new SearchCriteria(this.object, this.operation, this.value, this.secondValue, this.joinOperator));
             return searchCriteriaList.toArray(SearchCriteria[]::new);
         }
     }

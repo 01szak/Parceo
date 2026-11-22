@@ -6,9 +6,4 @@ public class DateValidationException extends UserInputException{
         super(message);
     }
 
-    public static void checkClientInput(boolean condition, String errorMessage) {
-        if (condition) {
-            throw new DateValidationException(errorMessage);
-        }
-    }
 }

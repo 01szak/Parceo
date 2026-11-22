@@ -1,22 +1,24 @@
 package pl.parceo.service.core;
 
+import org.jetbrains.annotations.VisibleForTesting;
+import pl.parceo.model.constant.Currency;
 import pl.parceo.model.constant.ReservationStatus;
 import pl.parceo.model.dto.ReservationDTO;
 import pl.parceo.model.entity.Reservation;
+import pl.parceo.model.entity.ReservationTransaction;
 import pl.parceo.model.entity.User;
 import pl.parceo.repository.CRUDRepository;
 import pl.parceo.repository.ReservationRepository;
-import pl.parceo.service.core.StatisticsService.StatisticsModel;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import pl.parceo.service.paymnet_transaction.TransactionService;
 
 import java.time.LocalDate;
-import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
-import static pl.parceo.exception.DateValidationException.checkClientInput;
+import static pl.parceo.exception.UserInputException.checkClientInput;
 import static pl.parceo.model.constant.ReservationStatus.ACTIVE;
 import static pl.parceo.model.constant.ReservationStatus.COMING;
 import static pl.parceo.model.constant.ReservationStatus.EXPIRED;
@@ -28,9 +30,10 @@ import static pl.parceo.model.constant.ReservationStatus.VERIFIED;
 public class ReservationService extends CRUDServiceImpl<Reservation> {
 
     private final ReservationRepository reservationRepository;
-    private final GuestService guestService;
-    private final CamperPlaceService camperPlaceService;
     private final ReservationCalculatorService calculator;
+    private final TransactionService transactionService;
+    private final CamperPlaceService camperPlaceService;
+    private final GuestService guestService;
     private final UserService userService;
 
     public Reservation create(ReservationDTO reservationDto) {
@@ -44,24 +47,41 @@ public class ReservationService extends CRUDServiceImpl<Reservation> {
         final var guest = Optional.ofNullable(reservationDto.guest().id()).isPresent()
                 ? guestService.update(reservationDto.guest())
                 : guestService.create(reservationDto.guest());
-
         final var status = Optional.ofNullable(reservationDto.reservationStatus())
                 .orElse(getActuallReservationStatus(checkin, checkout));
-
-        final var r = Reservation.builder()
+        final var price = calculator.calculate(camperPlace.getPrice(), checkin.datesUntil(checkout).count());
+        final var paid = reservationDto.paid() != null && reservationDto.paid();
+        var r = Reservation.builder()
                 .checkin(checkin)
                 .checkout(checkout)
                 .camperPlace(camperPlace)
                 .guest(guest)
-                .price(calculator.calculate(camperPlace.getPrice(), checkin.datesUntil(checkout).count()))
-                .paid(reservationDto.paid() != null && reservationDto.paid())
+                .price(price)
+                .paid(paid)
                 .reservationStatus(status)
                 .notes(reservationDto.notes())
-                .creator(creator);
+                .creator(creator)
+                .build();
+        try {
+            r = super.create(r);
+            if (paid) {
+                transactionService.create(
+                        ReservationTransaction.builder()
+                                .reservation(r)
+                                .ammount(price)
+                                .currency(Currency.PLN) //TODO this shouldn't be hardcoded!
+                                .organisation(creator.getOrganisation())
+                                .build()
+                );
+            }
+        } catch (Exception e) {
+            throw e;
+        }
 
-       return super.create(r.build());
+       return r;
     }
 
+    @VisibleForTesting
     public ReservationStatus getActuallReservationStatus(LocalDate checkin, LocalDate checkout) {
         if (isActive(checkin, checkout)) {
             return ACTIVE;
@@ -92,6 +112,9 @@ public class ReservationService extends CRUDServiceImpl<Reservation> {
 
         var r = findById(reservationDto.id());
 
+        checkClientInput(r.getPaid() && !reservationDto.paid(),
+                "Nie można cofnąć statusu płatności. W przypadku zwrotu należy usunąć rezerwację.");
+
         var datesOrCpChanged = !r.getCheckin().equals(checkin)
                 || !r.getCheckout().equals(checkout)
                 || !r.getCamperPlace().getIndex().equals(reservationDto.camperPlace().index());
@@ -99,10 +122,11 @@ public class ReservationService extends CRUDServiceImpl<Reservation> {
         //it is checked because of the constraints and reservations overlapping
         if (datesOrCpChanged) {
             validateDates(checkout, checkin, camperPlace.getId(), r.getId());
+            final var price = calculator.calculate(camperPlace.getPrice(), checkin.datesUntil(checkout).count());
             r.setCheckin(checkin);
             r.setCheckout(checkout);
             r.setCamperPlace(camperPlace);
-            r.setPrice(calculator.calculate(camperPlace.getPrice(), checkin.datesUntil(checkout).count()));
+            r.setPrice(price);
             if (
                 !VERIFIED.equals(r.getReservationStatus())
                 && !UNVERIFIED.equals(r.getReservationStatus())
@@ -110,18 +134,27 @@ public class ReservationService extends CRUDServiceImpl<Reservation> {
                 r.setReservationStatus(getActuallReservationStatus(checkin, checkout));
             }
         }
-
-        var guest = guestService.update(reservationDto.guest());
-
+        final var guest = guestService.update(reservationDto.guest());
+        final var isAlreadyPaid = r.getPaid();
         r.setGuest(guest);
         r.setPaid(reservationDto.paid());
         r.setNotes(reservationDto.notes());
-
-        return super.update(r);
-    }
-
-    public List<StatisticsModel.Revenue> countRevenueOfAllCamperPlaces(boolean isPaid, int month, int year) {
-        return reservationRepository.countRevenueOfAllCamperPlaces(isPaid, month, year);
+        try {
+            r = super.update(r);
+            if (!isAlreadyPaid && reservationDto.paid()) {
+                transactionService.create(
+                        ReservationTransaction.builder()
+                                .reservation(r)
+                                .ammount(r.getPrice())
+                                .currency(Currency.PLN) //TODO this shouldn't be hardcoded!
+                                .organisation(r.getCreator().getOrganisation()) //TODO in future change this to r.getOrganisation()
+                                .build()
+                );
+            }
+        } catch (Exception e) {
+            throw e;
+        }
+        return r;
     }
 
     public int setActualReservationStatuses() {

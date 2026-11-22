@@ -1,6 +1,6 @@
 package pl.parceo.service.processor.task.webappreservationflow;
 
-import pl.parceo.exception.DateValidationException;
+import pl.parceo.exception.UserInputException;
 import pl.parceo.model.EmailData;
 import pl.parceo.model.constant.Operation;
 import pl.parceo.model.constant.SupportedLocale;
@@ -67,7 +67,7 @@ public class WebAppReservationTask implements ExecutableTask {
         CreateReservationResult createReservationResult;
         try {
             createReservationResult = new CreateReservationResult(false, reservationService.create(modifiedReservation));
-        } catch (DateValidationException e) {
+        } catch (UserInputException e) {
             createReservationResult = handleRetry(guest, reservationDTO);
             if (!createReservationResult.isRetry()) {
                 throw e;

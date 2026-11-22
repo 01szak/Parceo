@@ -11,11 +11,13 @@ import pl.parceo.model.dto.ReservationDTO;
 import pl.parceo.model.entity.CamperPlace;
 import pl.parceo.model.entity.CamperPlaceType;
 import pl.parceo.model.entity.Guest;
+import pl.parceo.model.entity.Organisation;
 import pl.parceo.model.entity.Reservation;
 import pl.parceo.model.entity.User;
 import pl.parceo.service.core.CamperPlaceService;
 import pl.parceo.service.core.CamperPlaceTypeService;
 import pl.parceo.service.core.GuestService;
+import pl.parceo.service.core.OrganisationService;
 import pl.parceo.service.core.ReservationService;
 import pl.parceo.service.core.StatisticsService;
 import pl.parceo.service.core.UserService;
@@ -55,6 +57,8 @@ public abstract class BaseIT extends AbstractMySqlContainerTest {
     protected TaskService taskService;
     @Autowired
     protected UserService userService;
+    @Autowired
+    protected OrganisationService organisationService;
 
     private static long eachTestStart;
     private static long testStart;
@@ -75,7 +79,7 @@ public abstract class BaseIT extends AbstractMySqlContainerTest {
         eachTestStart = new Date().getTime();
         System.out.println("\n-----------< TEST START >-----------");
 
-        final var testUser = userService.create(User.builder()
+        var testUser = userService.create(User.builder()
                 .login(IT_USER_LOGIN)
                 .username(IT_USER_LOGIN)
                 .email("it_test_user@example.com")
@@ -83,6 +87,15 @@ public abstract class BaseIT extends AbstractMySqlContainerTest {
                 .userRole(UserRole.ADMIN)
                 .build()
         );
+        final var organisation = organisationService.create(Organisation.builder()
+                .owner(testUser)
+                .organisationName("Test Organisation")
+                .address("Test Address 1")
+                .webAppApiKey(IT_USER_LOGIN + "-api-key")
+                .build()
+        );
+        testUser.setOrganisation(organisation);
+        testUser = userService.update(testUser);
         AuthenticationHelper.authenticateUser(testUser);
     }
 

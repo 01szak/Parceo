@@ -1,5 +1,7 @@
 -- liquibase formatted sql
--- changeset 01szak:camper_place_type context:dev
+
+-- changeset 01szak:camper_place_type_demo context:dev
+-- validCheckSum: ANY
 -- preconditions onFail:MARK_RAN
 -- precondition-sql-check expectedResult:0 SELECT COUNT(*) FROM camper_place_type
 
@@ -9,4 +11,6 @@ VALUES
     (2, 'Premium', 80.00, NOW(), NOW()),
     (3, 'Luxury', 120.00, NOW(), NOW()),
     (4, 'Tent', 30.00, NOW(), NOW()),
-    (5, 'RV', 100.00, NOW(), NOW());
+    (5, 'RV', 100.00, NOW(), NOW()),
+    (6, 'Glamping', 150.00, NOW(), NOW());
+

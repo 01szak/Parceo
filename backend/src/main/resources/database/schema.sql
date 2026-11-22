@@ -179,3 +179,29 @@ ALTER TABLE organisation
 -- precondition-sql-check expectedResult:0 SELECT COUNT(*) FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'reservation' AND column_name = 'notes'
 ALTER TABLE reservation
     ADD COLUMN notes VARCHAR(500) DEFAULT NULL;
+
+-- changeset 01szak:payment_transaction_table
+-- preconditions onFail:MARK_RAN
+-- precondition-sql-check expectedResult:0 SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'payment_transaction'
+CREATE TABLE IF NOT EXISTS payment_transaction (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY NOT NULL,
+    created_at DATETIME,
+    updated_at DATETIME,
+    currency VARCHAR(3) NOT NULL,
+    ammount DECIMAL(19,2) NOT NULL,
+    transaction_type VARCHAR(50) NOT NULL,
+    organisation_id BIGINT NOT NULL,
+    CONSTRAINT fk_transaction_organisation_id FOREIGN KEY (organisation_id) REFERENCES organisation(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- changeset 01szak:reservation_payment_transaction_table
+-- preconditions onFail:MARK_RAN
+-- precondition-sql-check expectedResult:0 SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'reservation_payment_transaction'
+CREATE TABLE IF NOT EXISTS reservation_payment_transaction (
+    id BIGINT PRIMARY KEY NOT NULL,
+    reservation_id BIGINT NOT NULL,
+    CONSTRAINT fk_reservation_transaction_inheritance_id FOREIGN KEY (id) REFERENCES payment_transaction(id),
+    CONSTRAINT fk_transaction_reservation_id FOREIGN KEY (reservation_id) REFERENCES reservation(id),
+    CONSTRAINT fk_transaction_reservation_id_unique UNIQUE KEY (reservation_id) REFERENCES reservation(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+

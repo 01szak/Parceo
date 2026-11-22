@@ -5,7 +5,6 @@ import pl.parceo.model.dto.GuestDTO;
 import pl.parceo.model.entity.Guest;
 import pl.parceo.repository.CRUDRepository;
 import pl.parceo.repository.GuestRepository;
-import pl.parceo.service.core.StatisticsService.StatisticsModel;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -65,10 +64,6 @@ public class GuestService extends CRUDServiceImpl<Guest> {
         if (guestIsEmpty) {
             throw new UserInputException("Utwórz lub podaj istniejącego gościa");
         }
-    }
-
-    public List<StatisticsModel.CountryDistribution> getCountryDistribution(int month, int year) {
-        return guestRepository.getCountryDistribution(month, year);
     }
 
     @Override
