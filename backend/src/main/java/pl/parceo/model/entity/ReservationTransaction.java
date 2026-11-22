@@ -1,5 +1,6 @@
 package pl.parceo.model.entity;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 import jakarta.persistence.JoinColumn;
@@ -10,6 +11,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 @Getter
 @Setter
@@ -23,5 +26,6 @@ public class ReservationTransaction extends Transaction {
     @NotNull
     @ManyToOne
     @JoinColumn(name = "reservation_id", nullable = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private Reservation reservation;
 }

@@ -61,6 +61,19 @@ public class StatisticsRepositoryIT extends BaseIT {
     }
 
     @Test
+    public void shouldSumNightsAcrossReservationsCheckingInWithinRangeWithPartialReservation() {
+        // Given - 2 nights + 3 nights inside the range, 4 nights outside of it
+        createReservationWithNewData("NIGHTS_TYPE2", BigDecimal.valueOf(10), "1_NIGHTS_CP", "Jan", "Kowalski", Country.POLAND,
+                LocalDate.parse("2031-01-01"), LocalDate.parse("2031-01-10"), false);
+
+        // When
+        final var nights = statisticsRepository.getNightsSold(LocalDate.parse("2031-01-01"), LocalDate.parse("2031-01-06"));
+
+        // Then
+        assertThat(nights).isEqualTo(5L);
+    }
+
+    @Test
     public void shouldComputeOverallOccupancyAcrossAllCamperPlaces() {
         // Given - 1 camper place, occupied for 2 nights out of a 5-day window -> occupancy 0.4
         createReservationWithNewData("OCC_TYPE", BigDecimal.valueOf(10), "1_OCC_CP", "Jan", "Kowalski", Country.POLAND,

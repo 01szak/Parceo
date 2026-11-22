@@ -36,9 +36,9 @@ public interface StatisticsRepository extends org.springframework.data.repositor
             @Param("from") Date from, @Param("to") Date to, @Param("pattern") String pattern);
 
     @Query("""
-        SELECT COALESCE(SUM(FUNCTION('DATEDIFF', r.checkout, r.checkin)), 0) nights
+        SELECT COALESCE(SUM(FUNCTION('DATEDIFF', LEAST(r.checkout, :to), GREATEST(r.checkin, :from))), 0) nights
         FROM Reservation r
-        WHERE r.checkin BETWEEN :from AND :to
+        WHERE r.checkin <= :to AND r.checkout >= :from
         """)
     long getNightsSold(@Param("from") LocalDate from, @Param("to") LocalDate to);
 
@@ -48,7 +48,7 @@ public interface StatisticsRepository extends org.springframework.data.repositor
                 / ((CAST(FUNCTION('DATEDIFF', :to, :from) AS long) + 1) * (SELECT COUNT(cp) FROM CamperPlace cp))
         , 0.0) overall_occupancy
         FROM Reservation r
-        WHERE r.checkin BETWEEN :from AND :to
+        WHERE r.checkout >= :from AND r.checkin <= :to
         """)
     double getOverallOccupancy(@Param("from") LocalDate from, @Param("to") LocalDate to);
 
@@ -61,7 +61,7 @@ public interface StatisticsRepository extends org.springframework.data.repositor
         FROM Reservation r
         JOIN r.camperPlace cp
         JOIN cp.camperPlaceType cpt
-        WHERE r.checkin BETWEEN :from AND :to
+        WHERE r.checkout >= :from AND r.checkin <= :to
         GROUP BY cpt.id, cpt.typeName
         """)
     List<OccupancyPerCamperPlaceType> getOccupancyByCamperPlaceType(@Param("from") LocalDate from, @Param("to") LocalDate to);
@@ -70,7 +70,7 @@ public interface StatisticsRepository extends org.springframework.data.repositor
         SELECT new pl.parceo.model.dto.GuestCountPerCountry(g.country country, COUNT(DISTINCT g))
         FROM Guest g
         JOIN g.reservations r
-        WHERE r.checkin BETWEEN :from AND :to
+        WHERE r.checkout >= :from AND r.checkin <= :to
         GROUP BY g.country
         """)
     List<GuestCountPerCountry> getGuestPerCountryDistribution(@Param("from") LocalDate from, @Param("to") LocalDate to);
@@ -83,7 +83,7 @@ public interface StatisticsRepository extends org.springframework.data.repositor
         )
         FROM ReservationTransaction rt
         JOIN rt.reservation r
-        WHERE r.checkin BETWEEN :from AND :to AND r.paid = TRUE
+        WHERE r.checkout >= :from AND r.checkin <= :to AND r.paid = TRUE
         GROUP BY r.camperPlace.index
         """)
     List<RevenuePerCamperPlace> getRevenuePerCamperPlace(@Param("from") LocalDate from, @Param("to") LocalDate to);

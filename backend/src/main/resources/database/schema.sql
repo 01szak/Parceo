@@ -201,6 +201,7 @@ CREATE TABLE IF NOT EXISTS reservation_payment_transaction (
     id BIGINT PRIMARY KEY NOT NULL,
     reservation_id BIGINT NOT NULL,
     CONSTRAINT fk_reservation_transaction_inheritance_id FOREIGN KEY (id) REFERENCES payment_transaction(id),
-    CONSTRAINT fk_transaction_reservation_id FOREIGN KEY (reservation_id) REFERENCES reservation(id)
+    CONSTRAINT fk_transaction_reservation_id FOREIGN KEY (reservation_id) REFERENCES reservation(id),
+    CONSTRAINT fk_transaction_reservation_id_unique UNIQUE KEY (reservation_id) REFERENCES reservation(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
